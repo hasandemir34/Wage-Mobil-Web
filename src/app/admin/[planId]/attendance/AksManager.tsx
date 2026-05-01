@@ -71,7 +71,7 @@ export default function AksManager({
             type="number" 
             value={bonus}
             onChange={(e) => setBonus(Number(e.target.value))}
-            className={`w-16 px-2 py-1 rounded-lg text-sm font-black outline-none transition-all
+            className={`w-20 px-3 py-1 rounded-lg text-sm font-black outline-none transition-all
               ${isActive ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'}
             `}
           />

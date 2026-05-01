@@ -45,21 +45,21 @@ export default async function AdminLayout({
         </div>
         <div className="flex flex-1 flex-col overflow-y-auto p-4">
           <nav className="flex-1 space-y-2">
-            <Link href={`/admin/${planId}`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700 transition-colors font-bold">
-              <LayoutDashboard className="h-5 w-5 text-indigo-500" />
-              <span>Özet</span>
-            </Link>
-            <Link href={`/admin/${planId}/workers`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
-              <Users className="h-5 w-5 text-indigo-500" />
-              <span>İşçiler</span>
-            </Link>
-            <Link href={`/admin/${planId}/attendance`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
+            <Link href={`/admin/${planId}/attendance`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700 transition-colors font-bold">
               <CalendarDays className="h-5 w-5 text-indigo-500" />
               <span>Puantaj</span>
             </Link>
             <Link href={`/admin/${planId}/advances`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
               <WalletCards className="h-5 w-5 text-indigo-500" />
               <span>Avanslar</span>
+            </Link>
+            <Link href={`/admin/${planId}`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
+              <LayoutDashboard className="h-5 w-5 text-indigo-500" />
+              <span>Özet</span>
+            </Link>
+            <Link href={`/admin/${planId}/workers`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
+              <Users className="h-5 w-5 text-indigo-500" />
+              <span>İşçiler</span>
             </Link>
           </nav>
         </div>
