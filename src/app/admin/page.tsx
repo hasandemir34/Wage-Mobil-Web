@@ -5,11 +5,18 @@ export default async function AdminDashboard() {
   const supabase = await createClient()
 
   const { data: workers } = await supabase.from('profiles').select('*').eq('role', 'worker')
-  const { data: attendance } = await supabase.from('attendance').select('*')
   const { data: advances } = await supabase.from('advances').select('*')
+  
+  const today = new Date().toISOString().split('T')[0]
+  const { data: todayAttendance } = await supabase
+    .from('attendance')
+    .select('id')
+    .eq('date', today)
+    .eq('status', 'present')
 
   const totalWorkers = workers?.length || 0
   const totalAdvances = advances?.reduce((sum, item) => sum + Number(item.amount), 0) || 0
+  const activeToday = todayAttendance?.length || 0
   
   return (
     <div className="space-y-6">
@@ -40,8 +47,10 @@ export default async function AdminDashboard() {
             <h3 className="tracking-tight text-sm font-medium text-gray-500 dark:text-gray-400">Bugün Çalışan</h3>
             <Briefcase className="h-4 w-4 text-gray-500" />
           </div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">0</div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 pt-1">Henüz girilmedi</p>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">{activeToday}</div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 pt-1">
+            {activeToday > 0 ? 'Kayıtlar güncel' : 'Henüz giriş yapılmadı'}
+          </p>
         </div>
       </div>
     </div>
