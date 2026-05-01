@@ -80,10 +80,16 @@ export default async function AdminLayout({
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         {/* Mobile Header */}
-        <div className="md:hidden flex h-16 items-center border-b border-gray-200 bg-white px-4 dark:bg-gray-800 dark:border-gray-700">
-          <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 truncate">
+        <div className="md:hidden flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:bg-gray-800 dark:border-gray-700">
+          <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 truncate max-w-[60%]">
             {membership.work_plans.name}
           </h1>
+          <form action="/auth/signout" method="post">
+            <button className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-600 hover:bg-red-100 active:scale-95 transition-all">
+              <LogOut className="h-4 w-4" />
+              <span>Çıkış</span>
+            </button>
+          </form>
         </div>
         <div className="p-4 md:p-10">
           {children}

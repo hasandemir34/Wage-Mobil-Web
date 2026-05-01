@@ -9,10 +9,11 @@ export default async function HomePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Kullanıcının üye olduğu tüm iş planlarını çek
+  // Kullanıcının sadece KENDİ üyeliklerini çek (Böylece hangi planlara erişimi olduğunu görür)
   const { data: memberships } = await supabase
     .from('work_plan_members')
     .select('*, work_plans(name)')
+    .eq('user_id', user.id)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -77,8 +78,14 @@ export default async function HomePage() {
                 </Link>
               ))
             ) : (
-              <div className="text-center py-12 bg-gray-100 dark:bg-gray-800/50 rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700">
-                <p className="text-gray-500">Henüz bir iş planınız bulunmuyor.</p>
+              <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-[3rem] border-4 border-dashed border-gray-100 dark:border-gray-700 shadow-inner">
+                <div className="bg-gray-50 dark:bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Layout className="text-gray-300" size={40} />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Henüz bir iş planınız bulunmuyor.</h3>
+                <p className="text-gray-500 font-medium max-w-xs mx-auto">
+                  Üstteki formdan yeni bir tane oluşturun veya yöneticinizden davet bekleyin.
+                </p>
               </div>
             )}
           </div>

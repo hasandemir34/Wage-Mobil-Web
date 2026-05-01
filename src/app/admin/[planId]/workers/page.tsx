@@ -12,7 +12,7 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
   // Aktif işçiler
   const { data: workers } = await supabase
     .from('work_plan_members')
-    .select('*')
+    .select('*, profiles(username)')
     .eq('plan_id', planId)
     .eq('role', 'worker')
 
@@ -107,8 +107,13 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {workers?.map(worker => (
                   <tr key={worker.id} className="group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all">
-                    <td className="px-8 py-6 text-xl font-bold text-gray-900 dark:text-white">
-                      {worker.full_name}
+                    <td className="px-8 py-6">
+                      <div className="text-xl font-bold text-gray-900 dark:text-white">
+                        {worker.full_name}
+                      </div>
+                      <div className="text-sm font-semibold text-gray-400">
+                        @{(worker as any).profiles?.username}
+                      </div>
                     </td>
                     <td className="px-8 py-6">
                       <div className="text-xl font-black text-indigo-600 dark:text-indigo-400">₺{worker.base_daily_wage}</div>

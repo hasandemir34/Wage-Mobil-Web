@@ -2,8 +2,15 @@ import { createAdminClient } from '@/utils/supabase/admin'
 import { acceptInvitation } from '../../actions/invitations'
 import { UserPlus, ShieldCheck } from 'lucide-react'
 
-export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
+export default async function InvitePage({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ token: string }>,
+  searchParams: Promise<{ error?: string }>
+}) {
   const { token } = await params
+  const { error } = await searchParams
   const supabase = createAdminClient()
 
   const { data: invitation } = await supabase
@@ -46,6 +53,25 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           <form action={acceptInvitation} className="space-y-6 text-left">
             <input type="hidden" name="token" value={token} />
             
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm font-bold p-4 rounded-xl text-center">
+                {decodeURIComponent(error)}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider ml-1">Kullanıcı Adı Belirle</label>
+              <input 
+                name="username" 
+                type="text" 
+                required 
+                placeholder="Örn: ahmet_usta"
+                pattern="^[a-zA-Z0-9_]+$"
+                title="Sadece harf, rakam ve alt çizgi kullanabilirsiniz. Boşluk bırakmayın."
+                className="w-full px-4 py-4 bg-white text-gray-900 border border-gray-300 rounded-xl text-xl placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+            
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider ml-1">Şifreni Belirle</label>
               <input 
@@ -60,6 +86,12 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
             <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-xl text-xl shadow-xl shadow-indigo-600/30 active:scale-95 transition-all">
               HESABIMI OLUŞTUR VE KATIL
             </button>
+
+            <div className="text-center pt-2">
+              <a href="/login" className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+                Zaten hesabım var
+              </a>
+            </div>
           </form>
 
           <p className="text-xs text-gray-400 font-medium px-8">

@@ -35,11 +35,14 @@ export default async function WorkerLayout({ children }: { children: ReactNode }
               <Wallet className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               <span className="text-xl font-bold text-gray-900 dark:text-white">Yevmiye Takip</span>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
+              <Link href="/" className="text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors">
+                Plan Değiştir
+              </Link>
               <form action="/auth/signout" method="post">
-                <button className="flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-red-400 transition-colors">
+                <button className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-sm font-black text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors active:scale-95 shadow-sm">
                   <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Çıkış Yap</span>
+                  <span>Çıkış Yap</span>
                 </button>
               </form>
             </div>

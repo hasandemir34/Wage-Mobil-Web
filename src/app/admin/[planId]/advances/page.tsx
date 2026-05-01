@@ -7,7 +7,7 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
 
   const { data: workers } = await supabase
     .from('work_plan_members')
-    .select('*')
+    .select('*, profiles(username)')
     .eq('plan_id', planId)
     .eq('role', 'worker')
 
@@ -34,11 +34,12 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
             <select name="worker_id" required className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold">
               <option value="">Seçiniz...</option>
               {workers?.map(w => (
-                <option key={w.user_id} value={w.user_id}>{w.full_name}</option>
+                <option key={w.user_id} value={w.user_id}>{w.full_name} (@{(w as any).profiles?.username})</option>
               ))}
             </select>
           </div>
-
+          
+          {/* ... rest of the form ... */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">Miktar (₺)</label>
             <input name="amount" type="number" required placeholder="0.00" className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg placeholder:text-gray-500 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold" />
@@ -77,7 +78,10 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
                 return (
                   <tr key={adv.id} className="hover:bg-red-50/30 dark:hover:bg-red-900/10 transition-all">
                     <td className="px-8 py-6 text-lg font-bold text-gray-500">{new Date(adv.date).toLocaleDateString('tr-TR')}</td>
-                    <td className="px-8 py-6 text-xl font-bold text-gray-900 dark:text-white">{worker?.full_name || 'Bilinmeyen İşçi'}</td>
+                    <td className="px-8 py-6 text-xl font-bold text-gray-900 dark:text-white">
+                      {worker?.full_name || 'Bilinmeyen İşçi'} 
+                      <span className="block text-xs text-gray-400 font-semibold">@{(worker as any)?.profiles?.username}</span>
+                    </td>
                     <td className="px-8 py-6 text-right">
                       <span className="text-2xl font-black text-red-600 dark:text-red-400">₺{adv.amount.toLocaleString('tr-TR')}</span>
                     </td>

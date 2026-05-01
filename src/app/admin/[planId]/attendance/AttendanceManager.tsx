@@ -1,0 +1,150 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Check, Calendar, Users, Zap } from 'lucide-react'
+import { saveAttendance } from './actions'
+
+interface Worker {
+  user_id: string
+  full_name: string
+  base_daily_wage: number
+}
+
+interface AttendanceRecord {
+  worker_id: string
+  status: string
+}
+
+export default function AttendanceManager({ 
+  workers, 
+  initialAttendance, 
+  planId, 
+  currentDate 
+}: { 
+  workers: Worker[], 
+  initialAttendance: AttendanceRecord[], 
+  planId: string,
+  currentDate: string 
+}) {
+  const [attendance, setAttendance] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState<string | null>(null)
+  const [saved, setSaved] = useState<string | null>(null)
+
+  useEffect(() => {
+    const initial: Record<string, string> = {}
+    workers.forEach(w => {
+      const record = initialAttendance.find(a => a.worker_id === w.user_id)
+      initial[w.user_id] = record?.status || 'absent'
+    })
+    setAttendance(initial)
+  }, [initialAttendance, workers])
+
+  const handleStatusChange = async (workerId: string, status: string) => {
+    setAttendance(prev => ({ ...prev, [workerId]: status }))
+    setSaving(workerId)
+    
+    const formData = new FormData()
+    formData.append('plan_id', planId)
+    formData.append('worker_id', workerId)
+    formData.append('date', currentDate)
+    formData.append('status', status)
+    formData.append('overtime_hours', '0') // Basitleştirme için
+
+    await saveAttendance(formData)
+    
+    setSaving(null)
+    setSaved(workerId)
+    setTimeout(() => setSaved(null), 2000)
+  }
+
+  const markAllFullDay = async () => {
+    const promises = workers.map(async (worker) => {
+      if (attendance[worker.user_id] !== 'present') {
+        return handleStatusChange(worker.user_id, 'present')
+      }
+    })
+    await Promise.all(promises)
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Üst Bar: Tarih ve Toplu İşlem */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-gray-800 p-6 rounded-[2rem] shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-center gap-4">
+          <div className="bg-indigo-100 p-3 rounded-2xl text-indigo-600">
+            <Calendar size={24} />
+          </div>
+          <div>
+            <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Seçili Tarih</p>
+            <input 
+              type="date" 
+              value={currentDate}
+              onChange={(e) => window.location.href = `?date=${e.target.value}`}
+              className="text-xl font-black text-gray-900 dark:text-white bg-transparent outline-none cursor-pointer"
+            />
+          </div>
+        </div>
+
+        <button 
+          onClick={markAllFullDay}
+          className="flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 px-8 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all active:scale-95"
+        >
+          <Zap size={20} />
+          TÜMÜNÜ TAM GÜN İŞARETLE
+        </button>
+      </div>
+
+      {/* İşçi Listesi */}
+      <div className="grid gap-4">
+        {workers.map((worker) => (
+          <div key={worker.user_id} className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-md transition-all">
+            <div className="flex items-center gap-4 self-start sm:self-center">
+              <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-2xl text-gray-400">
+                <Users size={24} />
+              </div>
+              <div>
+                <h4 className="text-xl font-black text-gray-900 dark:text-white">
+                  {worker.full_name} 
+                  <span className="text-sm font-bold text-gray-400 ml-2">(@{(worker as any).profiles?.username})</span>
+                </h4>
+                <p className="text-sm font-bold text-gray-400 uppercase">₺{worker.base_daily_wage} Yevmiye</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              {/* 3-Way Toggle */}
+              {[
+                { id: 'present', label: 'TAM GÜN', color: 'bg-green-500', activeColor: 'bg-green-600 text-white border-green-600' },
+                { id: 'half_day', label: 'YARIM GÜN', color: 'bg-orange-400', activeColor: 'bg-orange-500 text-white border-orange-500' },
+                { id: 'absent', label: 'GELMEDİ', color: 'bg-gray-400', activeColor: 'bg-gray-600 text-white border-gray-600' }
+              ].map((status) => (
+                <button
+                  key={status.id}
+                  onClick={() => handleStatusChange(worker.user_id, status.id)}
+                  className={`flex-1 sm:flex-none px-4 py-3 rounded-xl text-xs font-black transition-all border-2 ${
+                    attendance[worker.user_id] === status.id 
+                    ? status.activeColor
+                    : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
+                  }`}
+                >
+                  {status.label}
+                </button>
+              ))}
+
+              {/* Kaydediliyor / Kaydedildi İndikatörü */}
+              <div className="w-10 h-10 flex items-center justify-center ml-2">
+                {saving === worker.user_id ? (
+                  <div className="w-6 h-6 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                ) : saved === worker.user_id ? (
+                  <div className="bg-green-100 text-green-600 p-2 rounded-full animate-bounce">
+                    <Check size={20} />
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

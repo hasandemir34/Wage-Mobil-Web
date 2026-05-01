@@ -60,10 +60,18 @@ export default async function WorkerDashboard({ params }: { params: Promise<{ pl
     <div className="max-w-md mx-auto space-y-8 pb-24">
       {/* Header */}
       <div className="px-2">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Merhaba, {membership.full_name.split(' ')[0]}!</h1>
-        <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mt-1">
-          {membership.work_plans.name} • İşçi Paneli
-        </p>
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+          Merhaba, {(membership.full_name || 'İşçi').split(' ')[0]}!
+        </h1>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-gray-500 font-bold uppercase text-xs tracking-widest">
+            {membership.work_plans.name}
+          </p>
+          <span className="text-gray-300">•</span>
+          <p className="text-indigo-600 font-black text-xs uppercase tracking-widest">
+            Yevmİye: {formatCurrency(baseWage)}
+          </p>
+        </div>
       </div>
 
       {/* Hero: Net Alacak (Yeşil Kart) */}

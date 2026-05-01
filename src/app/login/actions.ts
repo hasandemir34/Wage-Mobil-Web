@@ -7,8 +7,17 @@ import { createClient } from '@/utils/supabase/server'
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
+  const rawUsername = formData.get('username') as string
+  const username = rawUsername.toLowerCase().replace(/\s+/g, '')
+  
+  if (!/^[a-z0-9_]+$/.test(username)) {
+    redirect(`/login?message=${encodeURIComponent('Kullanıcı adı sadece küçük harf, rakam ve alt çizgi içerebilir.')}`)
+  }
+
+  const shadowEmail = `${username}@yevmiye.local`
+
   const data = {
-    email: formData.get('email') as string,
+    email: shadowEmail,
     password: formData.get('password') as string,
   }
 
@@ -16,7 +25,7 @@ export async function login(formData: FormData) {
 
   if (error) {
     const message = error.message.includes('Invalid login credentials')
-      ? 'E-posta veya şifre hatalı. Lütfen tekrar deneyin.'
+      ? 'Kullanıcı adı veya şifre hatalı. Lütfen tekrar deneyin.'
       : `Giriş başarısız: ${error.message}`
     redirect(`/login?message=${encodeURIComponent(message)}`)
   }
@@ -28,8 +37,17 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
+  const rawUsername = formData.get('username') as string
+  const username = rawUsername.toLowerCase().replace(/\s+/g, '')
+
+  if (!/^[a-z0-9_]+$/.test(username)) {
+    redirect(`/login?message=${encodeURIComponent('Kullanıcı adı sadece küçük harf, rakam ve alt çizgi içerebilir.')}`)
+  }
+
+  const shadowEmail = `${username}@yevmiye.local`
+
   const data = {
-    email: formData.get('email') as string,
+    email: shadowEmail,
     password: formData.get('password') as string,
   }
 
@@ -37,12 +55,20 @@ export async function signup(formData: FormData) {
 
   if (error) {
     const message = error.message.includes('already registered')
-      ? 'Bu e-posta zaten kayıtlı. Lütfen giriş yapın.'
+      ? 'Bu kullanıcı adı zaten alınmış. Lütfen giriş yapın veya farklı bir ad seçin.'
       : `Kayıt başarısız: ${error.message}`
     redirect(`/login?message=${encodeURIComponent(message)}`)
   }
 
-  // Supabase email confirmation enabled ise bilgilendirme mesajı göster
+  // 4. Profil oluştur
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .insert([{
+      id: data.user?.id,
+      username: username,
+      full_name: username // Admin için başlangıçta username kullanabiliriz
+    }])
+
   revalidatePath('/', 'layout')
-  redirect(`/login?success=${encodeURIComponent('Kayıt başarılı! E-postanızı doğrulayın, ardından giriş yapabilirsiniz.')}`)
+  redirect(`/login?success=${encodeURIComponent('Kayıt başarılı! Şimdi giriş yapabilirsiniz.')}`)
 }

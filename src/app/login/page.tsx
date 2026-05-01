@@ -53,17 +53,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <form className="space-y-5">
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                E-posta Adresi
+              <label htmlFor="username" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                Kullanıcı Adı
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
                 required
                 className="block w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                placeholder="ornek@email.com"
+                placeholder="Örn: ahmet_usta"
               />
             </div>
             <div>

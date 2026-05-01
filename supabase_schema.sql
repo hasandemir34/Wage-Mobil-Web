@@ -1,9 +1,19 @@
--- 1. Tabloları Temizle (Eskileri siliyoruz çünkü mimari tamamen değişiyor)
+-- 1. Tabloları Temizle
 DROP TABLE IF EXISTS public.attendance CASCADE;
 DROP TABLE IF EXISTS public.advances CASCADE;
+DROP TABLE IF EXISTS public.work_plan_members CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 
--- 2. İş Planları (Projeler/Şantiyeler)
+-- 2. Profiller (Global Kullanıcı Verileri)
+CREATE TABLE public.profiles (
+  id uuid references auth.users on delete cascade primary key,
+  username text unique not null,
+  full_name text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  constraint username_format check (username ~* '^[a-z0-9_]+$')
+);
+
+-- 3. İş Planları (Projeler/Şantiyeler)
 CREATE TABLE public.work_plans (
   id uuid default gen_random_uuid() primary key,
   name text not null,
@@ -11,14 +21,14 @@ CREATE TABLE public.work_plans (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 3. İş Planı Üyeleri (Multi-Tenant İlişkisi)
+-- 4. İş Planı Üyeleri (Multi-Tenant İlişkisi)
 CREATE TABLE public.work_plan_members (
   id uuid default gen_random_uuid() primary key,
   plan_id uuid references public.work_plans(id) on delete cascade not null,
-  user_id uuid references auth.users on delete cascade not null,
+  user_id uuid references public.profiles(id) on delete cascade not null,
   role text check (role in ('admin', 'worker')) not null,
   base_daily_wage numeric default 0,
-  full_name text, -- İşçinin ismi
+  full_name text, -- Görünen isim (Profille aynı olabilir ama plana özel de tutulabilir)
   unique(plan_id, user_id)
 );
 
@@ -61,6 +71,14 @@ ALTER TABLE public.work_plan_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.advances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Profiles: Herkes birbirinin ismini ve kullanıcı adını görebilir.
+CREATE POLICY "Profiles are viewable by everyone" ON public.profiles
+FOR SELECT USING ( true );
+
+CREATE POLICY "Users can update own profile" ON public.profiles
+FOR UPDATE USING ( auth.uid() = id );
 
 -- Politikalar: Kullanıcı sadece ÜYESİ olduğu iş planının verilerini görebilir.
 

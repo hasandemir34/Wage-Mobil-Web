@@ -27,6 +27,13 @@ export async function acceptInvitation(formData: FormData) {
   const supabase = await createClient()
   const token = formData.get('token') as string
   const password = formData.get('password') as string
+  const rawUsername = formData.get('username') as string
+
+  const username = rawUsername.toLowerCase().replace(/\s+/g, '')
+
+  if (!/^[a-z0-9_]+$/.test(username)) {
+    redirect(`/invite/${token}?error=${encodeURIComponent('Kullanıcı adı sadece küçük harf, rakam ve alt çizgi içerebilir.')}`)
+  }
 
   // 1. Davetiyeyi bul
   const { data: invitation, error: invError } = await supabase
@@ -37,8 +44,7 @@ export async function acceptInvitation(formData: FormData) {
 
   if (invError || !invitation) throw new Error('Geçersiz davetiye')
 
-  // 2. İşçi için kullanıcı adı oluştur ve dummy email üret
-  const username = invitation.worker_name.toLowerCase().replace(/\s/g, '') + Math.floor(Math.random() * 1000)
+  // 2. Dummy email üret
   const email = `${username}@yevmiye.local`
 
   // 3. Kullanıcıyı oluştur (Admin client ile)
@@ -47,12 +53,28 @@ export async function acceptInvitation(formData: FormData) {
     email,
     password,
     email_confirm: true,
-    user_metadata: { full_name: invitation.worker_name }
+    user_metadata: { full_name: invitation.worker_name, username: username }
   })
 
-  if (authError) throw authError
+  if (authError) {
+    if (authError.message.includes('already registered')) {
+      redirect(`/invite/${token}?error=${encodeURIComponent('Bu kullanıcı adı zaten kullanılıyor. Lütfen başka bir ad seçin.')}`)
+    }
+    redirect(`/invite/${token}?error=${encodeURIComponent(authError.message)}`)
+  }
 
-  // 4. Kullanıcıyı iş planına üye olarak ekle
+  // 4. Profil oluştur
+  const { error: profileError } = await adminClient
+    .from('profiles')
+    .insert([{
+      id: authUser.user.id,
+      username: username,
+      full_name: invitation.worker_name
+    }])
+
+  if (profileError) throw profileError
+
+  // 5. Kullanıcıyı iş planına üye olarak ekle
   const { error: memberError } = await adminClient
     .from('work_plan_members')
     .insert([{
