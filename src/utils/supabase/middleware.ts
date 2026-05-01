@@ -33,40 +33,21 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // 1. Giriş yapılmamışsa ve login/auth dışında bir yere gidiliyorsa -> Login'e at
+  // 1. Giriş yapılmamışsa ve login/auth/invite dışında bir yere gidiliyorsa -> Login'e at
   if (
     !user &&
     !pathname.startsWith('/login') &&
-    !pathname.startsWith('/auth')
+    !pathname.startsWith('/auth') &&
+    !pathname.startsWith('/invite')
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // 2. Giriş yapılmışsa rol kontrolü yap
-  if (user) {
-    // Profil bilgisini çek (Rolü öğrenmek için)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    // Login sayfasına gitmeye çalışıyorsa ana sayfaya (role-router) yönlendir
-    if (pathname.startsWith('/login')) {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-
-    // İŞÇİ ise ve ADMIN sayfasına girmeye çalışıyorsa -> Kendi paneline at
-    if (profile?.role === 'worker' && pathname.startsWith('/admin')) {
-      return NextResponse.redirect(new URL('/worker', request.url))
-    }
-
-    // ADMIN ise ve WORKER sayfasına girmeye çalışıyorsa -> Kendi paneline at
-    if (profile?.role === 'admin' && pathname.startsWith('/worker')) {
-      return NextResponse.redirect(new URL('/admin', request.url))
-    }
+  // 2. Giriş yapılmışsa ve login sayfasına girmeye çalışıyorsa -> Ana sayfaya at
+  if (user && pathname.startsWith('/login')) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return supabaseResponse

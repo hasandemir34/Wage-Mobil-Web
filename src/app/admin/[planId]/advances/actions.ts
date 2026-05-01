@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 export async function addAdvance(formData: FormData) {
   const supabase = await createClient()
   
+  const plan_id = formData.get('plan_id') as string
   const worker_id = formData.get('worker_id') as string
   const amount = parseFloat(formData.get('amount') as string)
   
@@ -16,7 +17,7 @@ export async function addAdvance(formData: FormData) {
 
   await supabase
     .from('advances')
-    .insert([{ worker_id, amount, date, description }])
+    .insert([{ plan_id, worker_id, amount, date, description }])
 
-  revalidatePath('/admin/advances')
+  revalidatePath(`/admin/${plan_id}/advances`)
 }
