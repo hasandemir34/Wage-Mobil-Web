@@ -1,5 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { addAdvance } from './actions'
+import { Banknote } from 'lucide-react'
+import AdvanceForm from './AdvanceForm'
 
 export default async function AdvancesPage({ params }: { params: Promise<{ planId: string }> }) {
   const { planId } = await params
@@ -17,49 +19,16 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
     .eq('plan_id', planId)
     .order('date', { ascending: false })
 
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
+
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pb-24">
       <div className="flex flex-col gap-2">
-        <h2 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">Avans Kayıtları</h2>
-        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium">İşçilere verilen nakit ödemeleri kaydedin.</p>
+        <h2 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white uppercase">Avans Kayıtları</h2>
+        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium italic">İşçilere verilen nakit ödemeleri ve ara ödemeleri kaydedin.</p>
       </div>
 
-      <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border-4 border-red-50 dark:bg-gray-800 dark:border-gray-700">
-        <h3 className="text-2xl font-black mb-6 text-gray-900 dark:text-white">Yeni Avans Ekle</h3>
-        <form action={addAdvance} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <input type="hidden" name="plan_id" value={planId} />
-          
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">İşçi Seçin</label>
-            <select name="worker_id" required className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold">
-              <option value="">Seçiniz...</option>
-              {workers?.map(w => (
-                <option key={w.user_id} value={w.user_id}>{w.full_name} (@{(w as any).profiles?.username})</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* ... rest of the form ... */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">Miktar (₺)</label>
-            <input name="amount" type="number" required placeholder="0.00" className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg placeholder:text-gray-500 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold" />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">Tarih</label>
-            <input name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold" />
-          </div>
-
-          <div className="space-y-2 lg:col-span-3">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">Açıklama</label>
-            <input name="description" placeholder="Nakit avans, kira vb." className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg placeholder:text-gray-500 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold" />
-          </div>
-
-          <button type="submit" className="lg:col-start-4 bg-red-600 hover:bg-red-700 text-white font-black py-4 px-8 rounded-xl text-lg shadow-lg shadow-red-600/20 active:scale-95 transition-all self-end">
-            Avansı Kaydet
-          </button>
-        </form>
-      </div>
+      <AdvanceForm planId={planId} workers={workers || []} today={today} />
 
       <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
         <h3 className="p-8 pb-4 text-xl font-bold text-gray-400 uppercase tracking-widest">Son İşlemler</h3>

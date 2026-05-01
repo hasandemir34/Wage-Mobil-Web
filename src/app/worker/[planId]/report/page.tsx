@@ -1,0 +1,179 @@
+import { createClient } from '@/utils/supabase/server'
+import { HardHat, Wallet, Calendar as CalendarIcon, History, TrendingUp } from 'lucide-react'
+import WorkerReportHeader from './WorkerReportHeader'
+
+export default async function WorkerReportPage({ 
+  params 
+}: { 
+  params: Promise<{ planId: string }> 
+}) {
+  const { planId } = await params
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  // İşçi ve Plan bilgilerini çek
+  const { data: worker } = await supabase
+    .from('work_plan_members')
+    .select('*, work_plans(name)')
+    .eq('plan_id', planId)
+    .eq('user_id', user.id)
+    .single()
+
+  // Puantaj ve Avansları çek
+  const { data: attendance } = await supabase
+    .from('attendance')
+    .select('*')
+    .eq('plan_id', planId)
+    .eq('worker_id', user.id)
+    .order('date', { ascending: true })
+
+  const { data: advances } = await supabase
+    .from('advances')
+    .select('*')
+    .eq('plan_id', planId)
+    .eq('worker_id', user.id)
+    .order('date', { ascending: true })
+
+  if (!worker) return null
+
+  const baseWage = Number(worker.base_daily_wage || 0)
+
+  // AYLIK GRUPLAMA MANTIĞI
+  const monthlyData: { [key: string]: any } = {}
+
+  attendance?.forEach(r => {
+    const monthKey = new Date(r.date).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
+    if (!monthlyData[monthKey]) {
+      monthlyData[monthKey] = { full: 0, half: 0, concrete: 0, wageEarned: 0, concreteEarned: 0, advances: 0 }
+    }
+    
+    if (r.status === 'present') {
+      monthlyData[monthKey].full += 1
+      monthlyData[monthKey].wageEarned += baseWage
+    } else if (r.status === 'half_day') {
+      monthlyData[monthKey].half += 1
+      monthlyData[monthKey].wageEarned += (baseWage / 2)
+    }
+
+    if (r.is_concrete) {
+      monthlyData[monthKey].concrete += 1
+      monthlyData[monthKey].concreteEarned += Number(r.concrete_bonus || 0)
+    }
+  })
+
+  advances?.forEach(a => {
+    const monthKey = new Date(a.date).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
+    if (!monthlyData[monthKey]) {
+      monthlyData[monthKey] = { full: 0, half: 0, concrete: 0, wageEarned: 0, concreteEarned: 0, advances: 0 }
+    }
+    monthlyData[monthKey].advances += Number(a.amount || 0)
+  })
+
+  const totalEarned = (attendance?.reduce((sum, r) => {
+    let e = 0
+    if (r.status === 'present') e = baseWage
+    else if (r.status === 'half_day') e = baseWage / 2
+    return sum + e + Number(r.concrete_bonus || 0)
+  }, 0) || 0)
+  
+  const totalAdvances = advances?.reduce((sum, a) => sum + Number(a.amount), 0) || 0
+  const netBalance = totalEarned - totalAdvances
+
+  return (
+    <div className="bg-white min-h-screen p-4 sm:p-10 print:p-0">
+      <WorkerReportHeader planId={planId} />
+
+      <div className="max-w-4xl mx-auto border-2 border-gray-100 p-8 sm:p-12 rounded-[3rem] print:border-none print:p-0 shadow-sm bg-white">
+        {/* Header */}
+        <div className="flex justify-between items-start border-b-4 border-indigo-600 pb-8 mb-10">
+          <div>
+            <h1 className="text-3xl font-black tracking-tighter uppercase text-gray-900 leading-none">İŞÇİ HAKEDİŞ RAPORU</h1>
+            <p className="text-xl font-bold text-indigo-600 uppercase mt-2">{worker.full_name}</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{worker.work_plans.name} Şantiyesi</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Rapor Tarihi</p>
+            <p className="text-lg font-bold">{new Date().toLocaleDateString('tr-TR')}</p>
+          </div>
+        </div>
+
+        {/* Genel Toplam Kartları */}
+        <div className="grid grid-cols-3 gap-6 mb-12">
+          <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
+            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Toplam Kazanç</p>
+            <p className="text-2xl font-black text-indigo-900">₺{totalEarned.toLocaleString('tr-TR')}</p>
+          </div>
+          <div className="bg-red-50 p-6 rounded-[2rem] border border-red-100">
+            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Toplam Alınan</p>
+            <p className="text-2xl font-black text-red-600">₺{totalAdvances.toLocaleString('tr-TR')}</p>
+          </div>
+          <div className="bg-green-600 p-6 rounded-[2rem] text-white shadow-xl shadow-green-600/20">
+            <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">Kalan Alacak</p>
+            <p className="text-2xl font-black">₺{netBalance.toLocaleString('tr-TR')}</p>
+          </div>
+        </div>
+
+        {/* Aylık Özet Tablosu */}
+        <div className="space-y-6">
+          <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-2">
+            <TrendingUp size={18} className="text-indigo-600" /> AYLIK ÇALIŞMA ÖZETİ
+          </h2>
+          <div className="overflow-hidden rounded-[2rem] border-2 border-gray-50">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-900 text-white">
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest">Dönem / Ay</th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-center">Puantaj (T/Y)</th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-center">Beton</th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-right">Hakediş</th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-right">Avans</th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-right">Net Durum</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {Object.keys(monthlyData).reverse().map(month => {
+                  const data = monthlyData[month]
+                  const monthlyTotal = (data.wageEarned + data.concreteEarned) - data.advances
+                  return (
+                    <tr key={month} className="text-gray-700 font-bold hover:bg-gray-50 transition-colors">
+                      <td className="p-5 text-sm uppercase">{month}</td>
+                      <td className="p-5 text-center text-sm">
+                        <span className="text-green-600">{data.full} Tam</span>
+                        <span className="text-gray-300 mx-2">/</span>
+                        <span className="text-orange-600">{data.half} Yarım</span>
+                      </td>
+                      <td className="p-5 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <HardHat size={14} className={data.concrete > 0 ? 'text-orange-500' : 'text-gray-200'} />
+                          <span className={data.concrete > 0 ? 'text-orange-600' : 'text-gray-300'}>{data.concrete} Seans</span>
+                        </div>
+                      </td>
+                      <td className="p-5 text-right text-sm">₺{(data.wageEarned + data.concreteEarned).toLocaleString('tr-TR')}</td>
+                      <td className="p-5 text-right text-sm text-red-600">₺{data.advances.toLocaleString('tr-TR')}</td>
+                      <td className={`p-5 text-right text-base font-black ${monthlyTotal >= 0 ? 'text-indigo-600' : 'text-red-700'}`}>
+                        ₺{monthlyTotal.toLocaleString('tr-TR')}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-20 pt-8 border-t border-gray-100 flex justify-between items-end text-gray-400 text-[10px] italic">
+          <div>
+            <p>Bu rapor sistem tarafından otomatik olarak aylık bazda özetlenmiştir.</p>
+            <p>Yevmi Mobil Web Uygulaması - {new Date().getFullYear()}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-black text-gray-900 not-italic uppercase tracking-widest">Kişisel Arşiv</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

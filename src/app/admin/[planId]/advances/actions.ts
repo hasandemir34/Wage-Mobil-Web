@@ -11,7 +11,12 @@ export async function addAdvance(formData: FormData) {
   const amount = parseFloat(formData.get('amount') as string)
   
   const rawDate = formData.get('date') as string
-  const date = rawDate ? new Date(rawDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+  const trDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
+  const date = rawDate || trDate
+  
+  if (date > trDate) {
+    throw new Error('Gelecek bir tarih için avans girişi yapılamaz.')
+  }
   
   const description = formData.get('description') as string
 

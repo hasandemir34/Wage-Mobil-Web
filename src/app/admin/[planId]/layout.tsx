@@ -37,7 +37,7 @@ export default async function AdminLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900">
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700 hidden md:flex md:flex-col">
+      <aside className="w-64 flex-shrink-0 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700 hidden md:flex md:flex-col print:hidden">
         <div className="flex h-16 flex-shrink-0 items-center px-6 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 truncate">
             {membership.work_plans.name}
@@ -80,7 +80,7 @@ export default async function AdminLayout({
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         {/* Mobile Header */}
-        <div className="md:hidden flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:bg-gray-800 dark:border-gray-700">
+        <div className="md:hidden flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:bg-gray-800 dark:border-gray-700 print:hidden">
           <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 truncate max-w-[60%]">
             {membership.work_plans.name}
           </h1>

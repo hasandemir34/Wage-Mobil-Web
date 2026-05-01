@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-reac
 interface AttendanceRecord {
   date: string
   status: string
+  is_concrete?: boolean
 }
 
 export default function WorkerCalendar({ attendance }: { attendance: AttendanceRecord[] }) {
@@ -37,10 +38,10 @@ export default function WorkerCalendar({ attendance }: { attendance: AttendanceR
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
 
-  const getStatus = (day: number) => {
+  const getRecord = (day: number) => {
     if (!day) return null
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return attendance.find(a => a.date === dateStr)?.status
+    return attendance.find(a => a.date === dateStr)
   }
 
   return (
@@ -68,19 +69,28 @@ export default function WorkerCalendar({ attendance }: { attendance: AttendanceR
 
       <div className="grid grid-cols-7 gap-2">
         {days.map((day, idx) => {
-          const status = day ? getStatus(day) : null
+          const record = day ? getRecord(day) : null
+          const status = record?.status
+          const isConcrete = record?.is_concrete
+
           return (
             <div 
               key={idx} 
               className={`
-                aspect-square flex items-center justify-center text-2xl font-black transition-all
+                aspect-square flex items-center justify-center text-2xl font-black transition-all relative rounded-full
                 ${!day ? 'bg-transparent' : 'text-gray-400'}
                 ${status === 'present' ? 'text-green-500' : ''}
                 ${status === 'half_day' ? 'text-orange-500' : ''}
                 ${status === 'absent' ? 'text-red-500' : ''}
+                ${isConcrete ? 'ring-4 ring-orange-500 ring-offset-2 dark:ring-offset-gray-800 shadow-lg shadow-orange-500/20' : ''}
               `}
             >
               {day}
+              {isConcrete && (
+                <div className="absolute -top-0.5 -right-0.5">
+                  <div className="bg-orange-500 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800" />
+                </div>
+              )}
             </div>
           )
         })}

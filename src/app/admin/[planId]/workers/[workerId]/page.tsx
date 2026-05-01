@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { ArrowLeft, Calendar, History, Banknote, User } from 'lucide-react'
+import { ArrowLeft, Calendar, History, Banknote, User, HardHat } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function WorkerDetailPage({ 
@@ -37,46 +37,84 @@ export default async function WorkerDetailPage({
   if (!worker) return <div>İşçi bulunamadı.</div>
 
   const baseWage = Number(worker.base_daily_wage || 0)
+  
+  const totalWages = attendance?.reduce((sum, r) => {
+    if (r.status === 'present') return sum + baseWage
+    if (r.status === 'half_day') return sum + (baseWage / 2)
+    return sum
+  }, 0) || 0
+
+  const totalConcrete = attendance?.reduce((sum, r) => sum + Number(r.concrete_bonus || 0), 0) || 0
+  const totalAdvances = advances?.reduce((sum, r) => sum + Number(r.amount || 0), 0) || 0
+  const netBalance = (totalWages + totalConcrete) - totalAdvances
 
   return (
     <div className="space-y-10 pb-20">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href={`/admin/${planId}/payments`} className="p-3 bg-white rounded-2xl shadow-sm hover:bg-gray-50 transition-all text-gray-500">
-          <ArrowLeft size={24} />
-        </Link>
-        <div>
-          <h2 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">{worker.full_name}</h2>
-          <p className="text-gray-500 font-medium">@{worker.profiles?.username} - Detaylı Çalışma Geçmişi</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <Link href={`/admin/${planId}/payments`} className="p-3 bg-white rounded-2xl shadow-sm hover:bg-gray-50 transition-all text-gray-500">
+            <ArrowLeft size={24} />
+          </Link>
+          <div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white uppercase">{worker.full_name}</h2>
+            <p className="text-gray-500 font-medium">@{worker.profiles?.username} - Personel Kartı</p>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <div className="bg-indigo-600 p-4 rounded-3xl text-white shadow-lg">
+            <p className="text-[10px] font-black uppercase opacity-60">Net Alacak</p>
+            <p className="text-xl font-black">₺{netBalance.toLocaleString('tr-TR')}</p>
+          </div>
+          <div className="bg-orange-500 p-4 rounded-3xl text-white shadow-lg">
+            <p className="text-[10px] font-black uppercase opacity-60">Beton Toplam</p>
+            <p className="text-xl font-black">₺{totalConcrete.toLocaleString('tr-TR')}</p>
+          </div>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Yoklama Geçmişi */}
+        {/* Puantaj Geçmişi */}
         <div className="space-y-6">
-          <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-            <History className="text-indigo-600" />
-            Çalışma Geçmişi
+          <h3 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em] px-2 flex items-center gap-3">
+            <History size={18} className="text-indigo-600" />
+            Çalışma & Puantaj Geçmişi
           </h3>
           <div className="space-y-3">
-            {attendance?.map((record) => (
-              <div key={record.id} className="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-3 h-3 rounded-full ${record.status === 'present' ? 'bg-green-500' : record.status === 'half_day' ? 'bg-orange-500' : 'bg-red-500'}`} />
-                  <div>
-                    <p className="font-bold text-gray-900 dark:text-white">
-                      {new Date(record.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
-                    </p>
-                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                      {record.status === 'present' ? 'Tam Gün' : record.status === 'half_day' ? 'Yarım Gün' : 'Gelmedi'}
-                    </p>
+            {attendance?.map((record) => {
+              const dayWage = record.status === 'present' ? baseWage : record.status === 'half_day' ? baseWage / 2 : 0
+              const concreteBonus = Number(record.concrete_bonus || 0)
+              const totalDay = dayWage + concreteBonus
+
+              return (
+                <div key={record.id} className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 flex items-center justify-between shadow-sm hover:shadow-md transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-3 h-3 rounded-full ${record.status === 'present' ? 'bg-green-500' : record.status === 'half_day' ? 'bg-orange-500' : 'bg-red-500'}`} />
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white">
+                        {new Date(record.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'short' })}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                          {record.status === 'present' ? 'Tam Gün' : record.status === 'half_day' ? 'Yarım Gün' : 'Gelmedi'}
+                        </p>
+                        {record.is_concrete && (
+                          <span className="flex items-center gap-1 bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter">
+                            <HardHat size={10} /> Beton Mesaisi
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-black text-indigo-600">₺{totalDay.toLocaleString('tr-TR')}</p>
+                    {concreteBonus > 0 && (
+                      <p className="text-[9px] font-bold text-orange-500 uppercase tracking-tighter">+₺{concreteBonus} Beton</p>
+                    )}
                   </div>
                 </div>
-                <p className="text-lg font-black text-indigo-600">
-                  ₺{record.status === 'present' ? baseWage : record.status === 'half_day' ? baseWage / 2 : 0}
-                </p>
-              </div>
-            ))}
+              )
+            })}
             {(!attendance || attendance.length === 0) && (
               <p className="text-gray-400 italic py-4">Henüz çalışma kaydı bulunmuyor.</p>
             )}

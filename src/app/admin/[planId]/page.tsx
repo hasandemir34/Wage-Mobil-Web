@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { Users, WalletCards, Briefcase, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import ReportPanel from './ReportPanel'
 
 export default async function AdminDashboard({ params }: { params: Promise<{ planId: string }> }) {
   const { planId } = await params
@@ -28,7 +29,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
   // Tüm yoklamaları çek (Hesaplama için)
   const { data: allAttendance } = await supabase
     .from('attendance')
-    .select('worker_id, status')
+    .select('worker_id, status, concrete_bonus')
     .eq('plan_id', planId)
 
   // Toplam hakedişi hesapla
@@ -39,6 +40,9 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
       const wage = Number(worker.base_daily_wage || 0)
       if (att.status === 'present') totalEarned += wage
       else if (att.status === 'half_day') totalEarned += (wage / 2)
+      
+      // Beton bonuslarını da hakedişe ekle
+      totalEarned += Number(att.concrete_bonus || 0)
     }
   })
 
@@ -48,13 +52,13 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
   const netBalance = totalEarned - totalAdvances
   
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">Genel Özet</h2>
-        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium">Bu şantiyedeki güncel durumunuz.</p>
+    <div className="space-y-10 pb-24">
+      <div className="flex flex-col gap-2 px-2">
+        <h2 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white uppercase">Proje Özeti</h2>
+        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium italic">Şantiyedeki mali durumu ve puantajları buradan izleyin.</p>
       </div>
 
-      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Ödenecek Toplam (Link) */}
         <Link href={`/admin/${planId}/payments`} className="rounded-[2rem] border-4 border-indigo-600 bg-indigo-600 shadow-xl p-8 transform hover:scale-[1.05] hover:shadow-indigo-600/40 transition-all text-white group relative overflow-hidden">
           <div className="flex flex-row items-center justify-between pb-6 relative z-10">
@@ -68,18 +72,6 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
             Detayları gör <ArrowRight size={16} />
           </p>
         </Link>
-
-        {/* Toplam İşçi */}
-        <div className="rounded-[2rem] border-4 border-indigo-50 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800 p-8 transform hover:scale-[1.02] transition-all">
-          <div className="flex flex-row items-center justify-between pb-6">
-            <h3 className="tracking-tight text-xl font-black text-gray-400 uppercase">Toplam İşçi</h3>
-            <div className="bg-indigo-100 p-3 rounded-2xl text-indigo-600">
-              <Users className="h-8 w-8" />
-            </div>
-          </div>
-          <div className="text-5xl font-black text-indigo-600 dark:text-indigo-400">{totalWorkers}</div>
-          <p className="text-sm font-bold text-gray-400 mt-2">Kayıtlı personel</p>
-        </div>
 
         {/* Toplam Avans */}
         <div className="rounded-[2rem] border-4 border-red-50 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800 p-8 transform hover:scale-[1.02] transition-all">
@@ -105,6 +97,13 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
           <p className={`text-sm font-bold mt-2 ${activeToday > 0 ? 'text-green-500' : 'text-orange-500'}`}>
             {activeToday > 0 ? 'Puantaj tamam' : 'Giriş bekleniyor'}
           </p>
+        </div>
+      </div>
+
+      {/* Doküman Oluşturma Satırı (ALTTA) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <ReportPanel planId={planId} />
         </div>
       </div>
     </div>

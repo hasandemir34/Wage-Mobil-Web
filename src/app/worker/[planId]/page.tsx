@@ -2,9 +2,10 @@
 
 import { createClient } from '@/utils/supabase/client'
 import { redirect } from 'next/navigation'
-import { CalendarDays, Wallet, TrendingUp, History, X } from 'lucide-react'
+import { CalendarDays, Wallet, TrendingUp, History, X, FileText, ArrowRight } from 'lucide-react'
 import WorkerCalendar from './WorkerCalendar'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
 export default function WorkerDashboard({ params }: { params: any }) {
   const [data, setData] = useState<any>(null)
@@ -62,8 +63,19 @@ export default function WorkerDashboard({ params }: { params: any }) {
   const fullDays = attendance?.filter((a: any) => a.status === 'present').length || 0
   const halfDays = attendance?.filter((a: any) => a.status === 'half_day').length || 0
   const totalWorkedDays = fullDays + halfDays
-  
-  const totalEarned = (fullDays * baseWage) + (halfDays * (baseWage / 2))
+
+  const totalWages = attendance?.reduce((sum: number, record: any) => {
+    let earned = 0
+    if (record.status === 'present') earned = baseWage
+    else if (record.status === 'half_day') earned = baseWage / 2
+    return sum + earned
+  }, 0) || 0
+
+  const totalConcrete = attendance?.reduce((sum: number, record: any) => {
+    return sum + Number(record.concrete_bonus || 0)
+  }, 0) || 0
+
+  const totalEarned = totalWages + totalConcrete
   const totalAdvances = advances?.reduce((sum: number, item: any) => sum + Number(item.amount), 0) || 0
   const netBalance = totalEarned - totalAdvances
 
@@ -98,9 +110,19 @@ export default function WorkerDashboard({ params }: { params: any }) {
         <div className="text-5xl font-black tracking-tighter tabular-nums">
           {formatCurrency(netBalance)}
         </div>
-        <div className="mt-6 pt-6 border-t border-white/20 flex justify-between items-center text-xs font-bold opacity-70">
-          <p>Hakediş: {formatCurrency(totalEarned)}</p>
-          <p>Avans: {formatCurrency(totalAdvances)}</p>
+        <div className="mt-6 pt-6 border-t border-white/20 flex flex-col gap-2">
+          <div className="flex justify-between items-center text-xs font-bold opacity-80">
+            <span>Yevmiye Toplamı:</span>
+            <span>{formatCurrency(totalWages)}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs font-black">
+            <span className="uppercase tracking-widest text-green-200">Beton Mesai Kazancı:</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-md">{formatCurrency(totalConcrete)}</span>
+          </div>
+          <div className="mt-1 pt-2 border-t border-white/10 flex justify-between items-center text-[10px] font-bold opacity-60 uppercase tracking-widest">
+            <span>Toplam Hak Ediş:</span>
+            <span>{formatCurrency(totalEarned)}</span>
+          </div>
         </div>
       </div>
 
@@ -124,6 +146,25 @@ export default function WorkerDashboard({ params }: { params: any }) {
             <p className="text-[8px] font-bold text-indigo-600 uppercase">Detay İçin Tıkla</p>
           </div>
         </button>
+      </div>
+
+      {/* Rapor Oluşturma Butonu (YENİ) */}
+      <div className="px-2">
+        <Link 
+          href={`/worker/${membership.plan_id}/report`}
+          className="w-full bg-white dark:bg-gray-800 p-6 rounded-[2rem] border-2 border-dashed border-indigo-200 dark:border-gray-700 flex items-center justify-between group hover:border-indigo-500 transition-all active:scale-95"
+        >
+          <div className="flex items-center gap-4">
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-xl text-indigo-600">
+              <FileText size={24} />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-black text-gray-900 dark:text-white uppercase">Çalışma Raporu Oluştur</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tüm hakediş ve puantaj dökümü</p>
+            </div>
+          </div>
+          <ArrowRight className="text-gray-300 group-hover:text-indigo-500 transition-all" size={20} />
+        </Link>
       </div>
 
       {/* Avans Geçmişi */}
