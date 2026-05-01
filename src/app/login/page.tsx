@@ -53,7 +53,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <form className="space-y-5">
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                 E-posta Adresi
               </label>
               <input
@@ -62,12 +62,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 type="email"
                 autoComplete="email"
                 required
-                className="block w-full rounded-lg border border-gray-300 bg-white py-2.5 px-3.5 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-indigo-400 transition-colors"
+                className="block w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                 placeholder="ornek@email.com"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                 Şifre
               </label>
               <input
@@ -76,7 +76,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="block w-full rounded-lg border border-gray-300 bg-white py-2.5 px-3.5 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-indigo-400 transition-colors"
+                className="block w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                 placeholder="••••••••"
               />
             </div>
@@ -90,11 +90,26 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             >
               Giriş Yap
             </button>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-600" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-400 dark:bg-gray-800">veya</span>
+              </div>
+            </div>
+            <button
+              id="signup-btn"
+              formAction={signup}
+              className="flex w-full justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600"
+            >
+              Kayıt Ol
+            </button>
           </div>
         </form>
 
         <p className="text-center text-xs text-gray-400 dark:text-gray-500">
-          Hesabınız yoksa lütfen yöneticinizle iletişime geçin.
+          Yeni bir şantiye yönetmek için kayıt olun veya mevcut hesabınızla giriş yapın.
         </p>
       </div>
     </div>

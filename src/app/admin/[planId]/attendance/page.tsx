@@ -1,3 +1,7 @@
+import { createClient } from '@/utils/supabase/server'
+import { saveAttendance } from './actions'
+import { Check } from 'lucide-react'
+
 export default async function AttendancePage({ params }: { params: Promise<{ planId: string }> }) {
   const { planId } = await params
   const supabase = await createClient()
@@ -51,27 +55,27 @@ export default async function AttendancePage({ params }: { params: Promise<{ pla
                         <select 
                           name="status" 
                           defaultValue={record?.status || 'present'}
-                          className="p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all text-lg font-bold"
+                          className="px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all text-lg font-bold"
                         >
                           <option value="present">Geldİ</option>
                           <option value="absent">Gelmedİ</option>
                         </select>
 
-                        <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-2xl border-2 border-transparent">
-                          <label className="text-sm font-black text-gray-400 uppercase px-2">Mesai:</label>
+                        <div className="flex items-center gap-3 bg-white dark:bg-gray-700 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus-within:ring-2 focus-within:ring-indigo-600 focus-within:border-transparent transition-all">
+                          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">Mesai:</label>
                           <input 
                             type="number" 
                             name="overtime_hours" 
                             defaultValue={record?.overtime_hours || 0}
                             min="0"
                             step="0.5"
-                            className="w-20 p-2 bg-transparent text-xl font-black text-indigo-600 outline-none" 
+                            className="w-16 bg-transparent text-xl font-black text-indigo-600 outline-none text-center" 
                           />
                         </div>
 
                         <button 
                           type="submit"
-                          className="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 px-8 rounded-2xl shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 px-8 rounded-lg shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
                         >
                           KAYDET
                         </button>

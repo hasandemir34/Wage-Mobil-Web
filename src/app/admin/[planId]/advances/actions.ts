@@ -15,9 +15,11 @@ export async function addAdvance(formData: FormData) {
   
   const description = formData.get('description') as string
 
-  await supabase
+  const { error } = await supabase
     .from('advances')
     .insert([{ plan_id, worker_id, amount, date, description }])
 
-  revalidatePath(`/admin/${plan_id}/advances`)
+  if (!error) {
+    revalidatePath(`/admin/${plan_id}/advances`, 'page')
+  }
 }

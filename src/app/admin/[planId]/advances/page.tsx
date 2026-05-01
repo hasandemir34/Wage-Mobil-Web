@@ -1,3 +1,6 @@
+import { createClient } from '@/utils/supabase/server'
+import { addAdvance } from './actions'
+
 export default async function AdvancesPage({ params }: { params: Promise<{ planId: string }> }) {
   const { planId } = await params
   const supabase = await createClient()
@@ -27,8 +30,8 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
           <input type="hidden" name="plan_id" value={planId} />
           
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-500 uppercase ml-2">İşçi Seçin</label>
-            <select name="worker_id" required className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-red-500 focus:bg-white outline-none transition-all text-lg font-bold">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">İşçi Seçin</label>
+            <select name="worker_id" required className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold">
               <option value="">Seçiniz...</option>
               {workers?.map(w => (
                 <option key={w.user_id} value={w.user_id}>{w.full_name}</option>
@@ -37,21 +40,21 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-500 uppercase ml-2">Miktar (₺)</label>
-            <input name="amount" type="number" required placeholder="0.00" className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-red-500 focus:bg-white outline-none transition-all text-lg font-bold" />
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">Miktar (₺)</label>
+            <input name="amount" type="number" required placeholder="0.00" className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg placeholder:text-gray-500 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold" />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-500 uppercase ml-2">Tarih</label>
-            <input name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-red-500 focus:bg-white outline-none transition-all text-lg font-bold" />
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">Tarih</label>
+            <input name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold" />
           </div>
 
           <div className="space-y-2 lg:col-span-3">
-            <label className="text-sm font-bold text-gray-500 uppercase ml-2">Açıklama</label>
-            <input name="description" placeholder="Nakit avans, kira vb." className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-red-500 focus:bg-white outline-none transition-all text-lg font-bold" />
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">Açıklama</label>
+            <input name="description" placeholder="Nakit avans, kira vb." className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg placeholder:text-gray-500 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all text-lg font-bold" />
           </div>
 
-          <button type="submit" className="lg:col-start-4 bg-red-600 hover:bg-red-500 text-white font-black py-4 px-8 rounded-2xl text-lg shadow-lg shadow-red-600/20 active:scale-95 transition-all self-end">
+          <button type="submit" className="lg:col-start-4 bg-red-600 hover:bg-red-700 text-white font-black py-4 px-8 rounded-xl text-lg shadow-lg shadow-red-600/20 active:scale-95 transition-all self-end">
             Avansı Kaydet
           </button>
         </form>

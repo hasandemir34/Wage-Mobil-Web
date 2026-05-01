@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { createInvitation } from '@/app/actions/invitations'
 import { updateWorker } from './actions'
 import { UserPlus, Copy, Check, Users } from 'lucide-react'
+import CopyInviteButton from './CopyInviteButton'
 
 export default async function WorkersPage({ params }: { params: Promise<{ planId: string }> }) {
   const { planId } = await params
@@ -38,14 +39,25 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
         <form action={createInvitation} className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <input type="hidden" name="plan_id" value={planId} />
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-500 uppercase ml-2">İşçi Adı Soyadı</label>
-            <input name="worker_name" required placeholder="Örn: Mehmet Usta" className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all text-lg font-bold" />
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">İşçi Adı Soyadı</label>
+            <input 
+              name="worker_name" 
+              required 
+              placeholder="Örn: Mehmet Usta" 
+              className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all text-lg font-bold" 
+            />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-500 uppercase ml-2">Günlük Yevmiye (₺)</label>
-            <input name="base_daily_wage" type="number" required placeholder="0" className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all text-lg font-bold" />
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase ml-1">Günlük Yevmiye (₺)</label>
+            <input 
+              name="base_daily_wage" 
+              type="number" 
+              required 
+              placeholder="0" 
+              className="w-full px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all text-lg font-bold" 
+            />
           </div>
-          <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 px-8 rounded-2xl text-lg shadow-lg shadow-indigo-600/20 active:scale-95 transition-all self-end">
+          <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 px-8 rounded-xl text-lg shadow-lg shadow-indigo-600/20 active:scale-95 transition-all self-end">
             Davetiye Oluştur
           </button>
         </form>
@@ -71,17 +83,7 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
                   <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl border-2 border-orange-200 flex-1 sm:flex-none font-mono text-xs truncate max-w-[200px]">
                     {`.../invite/${inv.token}`}
                   </div>
-                  <button 
-                    onClick={() => {
-                      const link = `${window.location.origin}/invite/${inv.token}`;
-                      navigator.clipboard.writeText(link);
-                      alert('Link kopyalandı! WhatsApp\'tan yapıştırıp gönderebilirsiniz.');
-                    }}
-                    className="bg-white hover:bg-orange-100 text-orange-600 p-4 rounded-2xl shadow-sm border-2 border-orange-200 transition-all active:scale-90"
-                    title="Linki Kopyala"
-                  >
-                    <Copy size={24} />
-                  </button>
+                  <CopyInviteButton token={inv.token} />
                 </div>
               </div>
             ))}

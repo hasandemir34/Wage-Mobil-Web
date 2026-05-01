@@ -1,10 +1,10 @@
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { acceptInvitation } from '../../actions/invitations'
 import { UserPlus, ShieldCheck } from 'lucide-react'
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: invitation } = await supabase
     .from('invitations')
@@ -12,7 +12,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     .eq('token', token)
     .single()
 
-  if (!invitation || invitation.status === 'accepted') {
+  if (!invitation || invitation.status === 'accepted' || !invitation.work_plans) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
         <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-md w-full border border-red-100">
@@ -20,11 +20,13 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
             <ShieldCheck size={64} />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Geçersiz Davetiye</h1>
-          <p className="text-gray-600">Bu davet linki geçersiz veya daha önce kullanılmış.</p>
+          <p className="text-gray-600">Bu davet linki geçersiz, süresi dolmuş veya ilgili proje bulunamadı.</p>
         </div>
       </div>
     )
   }
+
+  const workPlanName = (invitation.work_plans as any)?.name || 'Şantiye'
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-6">
@@ -37,7 +39,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           <div>
             <h1 className="text-3xl font-black text-gray-900 tracking-tight">Hoş Geldin, {invitation.worker_name}!</h1>
             <p className="text-gray-500 mt-2 text-lg">
-              <span className="font-bold text-indigo-600">{invitation.work_plans.name}</span> ekibine katılmak üzeresin.
+              <span className="font-bold text-indigo-600">{workPlanName}</span> ekibine katılmak üzeresin.
             </p>
           </div>
 
@@ -45,17 +47,17 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
             <input type="hidden" name="token" value={token} />
             
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Şifreni Belirle</label>
+              <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider ml-1">Şifreni Belirle</label>
               <input 
                 name="password" 
                 type="password" 
                 required 
                 placeholder="En az 6 karakter"
-                className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-xl focus:border-indigo-500 focus:bg-white outline-none transition-all"
+                className="w-full px-4 py-4 bg-white text-gray-900 border border-gray-300 rounded-xl text-xl placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
               />
             </div>
 
-            <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-5 rounded-2xl text-xl shadow-xl shadow-indigo-600/30 active:scale-95 transition-all">
+            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-xl text-xl shadow-xl shadow-indigo-600/30 active:scale-95 transition-all">
               HESABIMI OLUŞTUR VE KATIL
             </button>
           </form>
