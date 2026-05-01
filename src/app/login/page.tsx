@@ -90,26 +90,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             >
               Giriş Yap
             </button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-400 dark:bg-gray-800">veya</span>
-              </div>
-            </div>
-            <button
-              id="signup-btn"
-              formAction={signup}
-              className="flex w-full justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600"
-            >
-              Kayıt Ol
-            </button>
           </div>
         </form>
 
         <p className="text-center text-xs text-gray-400 dark:text-gray-500">
-          İlk kayıt olan kullanıcı otomatik olarak <span className="font-semibold text-indigo-500">Admin</span> yetkisine sahip olur.
+          Hesabınız yoksa lütfen yöneticinizle iletişime geçin.
         </p>
       </div>
     </div>

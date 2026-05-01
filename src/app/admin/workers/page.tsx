@@ -1,35 +1,48 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createWorker, updateWorker } from './actions'
 
 export default async function WorkersPage() {
   const supabase = await createClient()
 
-  // Get all workers
   const { data: workers } = await supabase
     .from('profiles')
     .select('*')
     .eq('role', 'worker')
 
-  async function updateWorker(formData: FormData) {
-    'use server'
-    const supabase = await createClient()
-    const id = formData.get('id') as string
-    const full_name = formData.get('full_name') as string
-    const base_wage = parseFloat(formData.get('base_wage') as string) || 0
-
-    await supabase
-      .from('profiles')
-      .update({ full_name, base_wage })
-      .eq('id', id)
-
-    revalidatePath('/admin/workers')
-  }
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">İşçi Yönetimi</h2>
-        <p className="text-gray-500 dark:text-gray-400">İşçilerin bilgilerini ve günlük yevmiyelerini buradan güncelleyebilirsiniz.</p>
+    <div className="space-y-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">İşçi Yönetimi</h2>
+          <p className="text-gray-500 dark:text-gray-400">İşçilerin bilgilerini ve günlük yevmiyelerini buradan güncelleyebilirsiniz.</p>
+        </div>
+      </div>
+
+      {/* Yeni İşçi Ekleme Formu */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 dark:bg-gray-800 dark:border-gray-700">
+        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Yeni İşçi Kaydı</h3>
+        <form action={createWorker} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tam Adı</label>
+            <input name="full_name" required placeholder="Ahmet Yılmaz" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">E-posta</label>
+            <input name="email" type="email" required placeholder="isçi@email.com" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Şifre</label>
+            <input name="password" type="password" required placeholder="••••••••" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Günlük Yevmiye (₺)</label>
+            <input name="base_wage" type="number" required placeholder="0" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+          </div>
+          <button type="submit" className="md:col-start-4 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
+            İşçiyi Kaydet
+          </button>
+        </form>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
@@ -68,7 +81,7 @@ export default async function WorkersPage() {
                     <button 
                       form={`form-${worker.id}`}
                       type="submit"
-                      className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors"
+                      className="rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                     >
                       Güncelle
                     </button>

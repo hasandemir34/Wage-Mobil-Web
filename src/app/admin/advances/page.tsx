@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { addAdvance } from './actions'
 
 export default async function AdvancesPage() {
   const supabase = await createClient()
@@ -13,21 +14,6 @@ export default async function AdvancesPage() {
     .from('advances')
     .select('*, profiles(full_name)')
     .order('date', { ascending: false })
-
-  async function addAdvance(formData: FormData) {
-    'use server'
-    const supabase = await createClient()
-    const worker_id = formData.get('worker_id') as string
-    const amount = parseFloat(formData.get('amount') as string)
-    const date = formData.get('date') as string
-    const description = formData.get('description') as string
-
-    await supabase
-      .from('advances')
-      .insert([{ worker_id, amount, date, description }])
-
-    revalidatePath('/admin/advances')
-  }
 
   return (
     <div className="space-y-8">
