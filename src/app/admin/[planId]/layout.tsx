@@ -34,13 +34,15 @@ export default async function AdminLayout({
     redirect('/')
   }
 
+  const planName = (membership.work_plans as any)?.name || 'Proje'
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900">
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700 hidden md:flex md:flex-col print:hidden">
         <div className="flex h-16 flex-shrink-0 items-center px-6 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 truncate">
-            {membership.work_plans.name}
+            {planName}
           </h1>
         </div>
         <div className="flex flex-1 flex-col overflow-y-auto p-4">
@@ -82,7 +84,7 @@ export default async function AdminLayout({
         {/* Mobile Header */}
         <div className="md:hidden flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:bg-gray-800 dark:border-gray-700 print:hidden">
           <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 truncate max-w-[60%]">
-            {membership.work_plans.name}
+            {planName}
           </h1>
           <form action="/auth/signout" method="post">
             <button className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-600 hover:bg-red-100 active:scale-95 transition-all">

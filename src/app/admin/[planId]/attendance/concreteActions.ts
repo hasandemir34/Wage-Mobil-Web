@@ -3,34 +3,50 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function saveConcreteAttendance(formData: FormData) {
+export async function saveConcreteAttendance(
+  planId: string, 
+  workerIds: string[], 
+  bonus: number, 
+  date: string
+) {
   const supabase = await createClient()
-  
-  const planId = formData.get('plan_id') as string
-  const date = formData.get('date') as string
-  const concreteWage = parseFloat(formData.get('concrete_wage') as string) || 0
-  const selectedWorkers = JSON.parse(formData.get('selected_workers') as string) as string[]
 
-  // Önce o günkü tüm beton işaretlerini kaldır (Sıfırla)
+  // Önce o günkü mevcut beton kayıtlarını temizle
   await supabase
     .from('attendance')
     .update({ is_concrete: false, concrete_bonus: 0 })
     .eq('plan_id', planId)
     .eq('date', date)
 
-  // Seçilen işçileri güncelle
-  if (selectedWorkers.length > 0) {
-    const { error } = await supabase
-      .from('attendance')
-      .update({ is_concrete: true, concrete_bonus: concreteWage })
-      .eq('plan_id', planId)
-      .eq('date', date)
-      .in('worker_id', selectedWorkers)
+  if (workerIds.length > 0) {
+    for (const workerId of workerIds) {
+      // Kayıt var mı kontrol et
+      const { data: existing } = await supabase
+        .from('attendance')
+        .select('id')
+        .eq('plan_id', planId)
+        .eq('worker_id', workerId)
+        .eq('date', date)
+        .single()
 
-    if (error) {
-      // Eğer o gün için henüz yoklama girilmemişse, upsert yapması gerekebilir.
-      // Ancak genellikle önce yoklama girilir. Hata almamak için gerekirse kayıt oluşturulabilir.
-      console.error('Concrete Save Error:', error)
+      if (existing) {
+        await supabase
+          .from('attendance')
+          .update({ is_concrete: true, concrete_bonus: bonus })
+          .eq('id', existing.id)
+      } else {
+        // Kayıt yoksa 'present' olarak oluştur ve beton'u işaretle
+        await supabase
+          .from('attendance')
+          .insert([{
+            plan_id: planId,
+            worker_id: workerId,
+            date: date,
+            status: 'present',
+            is_concrete: true,
+            concrete_bonus: bonus
+          }])
+      }
     }
   }
 
