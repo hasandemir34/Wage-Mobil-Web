@@ -51,15 +51,22 @@ export async function createWorker(formData: FormData) {
 }
 
 export async function updateWorker(formData: FormData) {
-    const supabase = await createClient()
-    const id = formData.get('id') as string
-    const full_name = formData.get('full_name') as string
-    const base_wage = parseFloat(formData.get('base_wage') as string) || 0
+  const supabase = await createClient()
+  const plan_id = formData.get('plan_id') as string
+  const user_id = formData.get('user_id') as string
+  const full_name = formData.get('full_name') as string
+  const base_daily_wage = parseFloat(formData.get('base_daily_wage') as string) || 0
 
-    await supabase
-      .from('profiles')
-      .update({ full_name, base_wage })
-      .eq('id', id)
+  const { error } = await supabase
+    .from('work_plan_members')
+    .update({ 
+      full_name, 
+      base_daily_wage 
+    })
+    .eq('plan_id', plan_id)
+    .eq('user_id', user_id)
 
-    revalidatePath('/admin/workers')
-  }
+  if (error) throw error
+
+  revalidatePath(`/admin/${plan_id}/workers`)
+}

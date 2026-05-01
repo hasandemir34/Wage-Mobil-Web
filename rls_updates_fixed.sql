@@ -44,6 +44,9 @@ FOR SELECT USING (
   user_id = auth.uid() OR public.is_plan_admin(plan_id)
 );
 
+CREATE POLICY "work_plan_members_admin_manage_policy" ON public.work_plan_members
+FOR ALL USING ( public.is_plan_admin(plan_id) );
+
 -- Attendance: Sadece adminler yönetebilir, işçiler sadece kendininkini görebilir.
 CREATE POLICY "attendance_admin_policy" ON public.attendance
 FOR ALL USING ( public.is_plan_admin(plan_id) );
@@ -63,4 +66,8 @@ CREATE POLICY "invitations_admin_policy" ON public.invitations
 FOR ALL USING ( public.is_plan_admin(plan_id) );
 
 CREATE POLICY "invitations_public_select" ON public.invitations
-FOR SELECT USING ( true );
+FOR SELECT USING ( status = 'pending' );
+
+-- 4. Profiles
+CREATE POLICY "profiles_insert_policy" ON public.profiles
+FOR INSERT WITH CHECK ( auth.uid() = id );

@@ -1,3 +1,7 @@
+-- DEPRECATED: DO NOT RUN THIS FILE.
+-- The profiles.role column no longer exists. Role is now in work_plan_members.
+-- Use supabase_migration_final.sql instead.
+
 -- Drop existing policies
 DROP POLICY IF EXISTS "Public profiles are viewable by admin." ON public.profiles;
 DROP POLICY IF EXISTS "Users can view their own profile." ON public.profiles;

@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
-import { Users, WalletCards, Briefcase } from 'lucide-react'
+import { Users, WalletCards, Briefcase, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function AdminDashboard({ params }: { params: Promise<{ planId: string }> }) {
   const { planId } = await params
@@ -16,7 +17,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
     .select('amount')
     .eq('plan_id', planId)
   
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
   const { data: todayAttendance } = await supabase
     .from('attendance')
     .select('id')
@@ -24,9 +25,27 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
     .eq('date', today)
     .eq('status', 'present')
 
+  // Tüm yoklamaları çek (Hesaplama için)
+  const { data: allAttendance } = await supabase
+    .from('attendance')
+    .select('worker_id, status')
+    .eq('plan_id', planId)
+
+  // Toplam hakedişi hesapla
+  let totalEarned = 0
+  allAttendance?.forEach(att => {
+    const worker = workers?.find(w => w.user_id === att.worker_id)
+    if (worker) {
+      const wage = Number(worker.base_daily_wage || 0)
+      if (att.status === 'present') totalEarned += wage
+      else if (att.status === 'half_day') totalEarned += (wage / 2)
+    }
+  })
+
   const totalWorkers = workers?.length || 0
   const totalAdvances = advances?.reduce((sum, item) => sum + Number(item.amount), 0) || 0
   const activeToday = todayAttendance?.length || 0
+  const netBalance = totalEarned - totalAdvances
   
   return (
     <div className="space-y-10">
@@ -35,7 +54,21 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
         <p className="text-xl text-gray-500 dark:text-gray-400 font-medium">Bu şantiyedeki güncel durumunuz.</p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Ödenecek Toplam (Link) */}
+        <Link href={`/admin/${planId}/payments`} className="rounded-[2rem] border-4 border-indigo-600 bg-indigo-600 shadow-xl p-8 transform hover:scale-[1.05] hover:shadow-indigo-600/40 transition-all text-white group relative overflow-hidden">
+          <div className="flex flex-row items-center justify-between pb-6 relative z-10">
+            <h3 className="tracking-tight text-xl font-black opacity-80 uppercase">Ödenecek Toplam</h3>
+            <div className="bg-white/20 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+              <WalletCards className="h-8 w-8" />
+            </div>
+          </div>
+          <div className="text-4xl font-black tracking-tighter tabular-nums relative z-10">₺{netBalance.toLocaleString('tr-TR')}</div>
+          <p className="text-sm font-bold opacity-70 mt-2 relative z-10 flex items-center gap-2">
+            Detayları gör <ArrowRight size={16} />
+          </p>
+        </Link>
+
         {/* Toplam İşçi */}
         <div className="rounded-[2rem] border-4 border-indigo-50 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800 p-8 transform hover:scale-[1.02] transition-all">
           <div className="flex flex-row items-center justify-between pb-6">
@@ -44,8 +77,8 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
               <Users className="h-8 w-8" />
             </div>
           </div>
-          <div className="text-6xl font-black text-indigo-600 dark:text-indigo-400">{totalWorkers}</div>
-          <p className="text-lg font-bold text-gray-400 mt-2">Kayıtlı personel</p>
+          <div className="text-5xl font-black text-indigo-600 dark:text-indigo-400">{totalWorkers}</div>
+          <p className="text-sm font-bold text-gray-400 mt-2">Kayıtlı personel</p>
         </div>
 
         {/* Toplam Avans */}
@@ -56,8 +89,8 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
               <WalletCards className="h-8 w-8" />
             </div>
           </div>
-          <div className="text-5xl font-black text-red-600 dark:text-red-400">₺{totalAdvances.toLocaleString('tr-TR')}</div>
-          <p className="text-lg font-bold text-gray-400 mt-2">Bu ay dağıtılan</p>
+          <div className="text-4xl font-black text-red-600 dark:text-red-400">₺{totalAdvances.toLocaleString('tr-TR')}</div>
+          <p className="text-sm font-bold text-gray-400 mt-2">Dağıtılan toplam miktar</p>
         </div>
 
         {/* Bugün Çalışan */}
@@ -68,9 +101,9 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
               <Briefcase className="h-8 w-8" />
             </div>
           </div>
-          <div className="text-6xl font-black text-green-600 dark:text-green-400">{activeToday}</div>
-          <p className={`text-lg font-bold mt-2 ${activeToday > 0 ? 'text-green-500' : 'text-orange-500'}`}>
-            {activeToday > 0 ? 'Yoklama tamamlandı' : 'Henüz giriş yapılmadı'}
+          <div className="text-5xl font-black text-green-600 dark:text-green-400">{activeToday}</div>
+          <p className={`text-sm font-bold mt-2 ${activeToday > 0 ? 'text-green-500' : 'text-orange-500'}`}>
+            {activeToday > 0 ? 'Puantaj tamam' : 'Giriş bekleniyor'}
           </p>
         </div>
       </div>

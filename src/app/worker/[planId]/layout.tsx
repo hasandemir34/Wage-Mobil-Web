@@ -4,7 +4,14 @@ import { LogOut, Wallet } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
-export default async function WorkerLayout({ children }: { children: ReactNode }) {
+export default async function WorkerLayout({ 
+  children,
+  params
+}: { 
+  children: ReactNode,
+  params: Promise<{ planId: string }>
+}) {
+  const { planId } = await params
   const supabase = await createClient()
 
   const {
@@ -15,14 +22,15 @@ export default async function WorkerLayout({ children }: { children: ReactNode }
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
+  const { data: membership } = await supabase
+    .from('work_plan_members')
     .select('role')
-    .eq('id', user.id)
+    .eq('plan_id', planId)
+    .eq('user_id', user.id)
     .single()
 
-  if (profile?.role !== 'worker' && profile?.role !== 'admin') {
-    // If somehow no role, redirect back
+  if (!membership) {
+    // Üye değilse ana sayfaya at
     redirect('/')
   }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Check, Calendar, Users, Zap } from 'lucide-react'
+import { Check, Calendar, Users, Zap, X } from 'lucide-react'
 import { saveAttendance } from './actions'
 
 interface Worker {
@@ -29,6 +29,7 @@ export default function AttendanceManager({
   const [attendance, setAttendance] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const initial: Record<string, string> = {}
@@ -40,21 +41,39 @@ export default function AttendanceManager({
   }, [initialAttendance, workers])
 
   const handleStatusChange = async (workerId: string, status: string) => {
-    setAttendance(prev => ({ ...prev, [workerId]: status }))
-    setSaving(workerId)
-    
-    const formData = new FormData()
-    formData.append('plan_id', planId)
-    formData.append('worker_id', workerId)
-    formData.append('date', currentDate)
-    formData.append('status', status)
-    formData.append('overtime_hours', '0') // Basitleştirme için
+    try {
+      const selectedDate = new Date(currentDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      if (selectedDate > today) {
+        setError('Gelecek bir tarih için kayıt girişi yapılamaz.')
+        setTimeout(() => setError(null), 5000)
+        return
+      }
 
-    await saveAttendance(formData)
-    
-    setSaving(null)
-    setSaved(workerId)
-    setTimeout(() => setSaved(null), 2000)
+      setAttendance(prev => ({ ...prev, [workerId]: status }))
+      setSaving(workerId)
+      setError(null)
+      
+      const formData = new FormData()
+      formData.append('plan_id', planId)
+      formData.append('worker_id', workerId)
+      formData.append('date', currentDate)
+      formData.append('status', status)
+      formData.append('overtime_hours', '0') // Basitleştirme için
+
+      await saveAttendance(formData)
+      
+      setSaving(null)
+      setSaved(workerId)
+      setTimeout(() => setSaved(null), 2000)
+    } catch (err: any) {
+      setSaving(null)
+      setError(err.message || 'Kayıt sırasında bir hata oluştu.')
+      // 5 saniye sonra hatayı temizle
+      setTimeout(() => setError(null), 5000)
+    }
   }
 
   const markAllFullDay = async () => {
@@ -68,6 +87,21 @@ export default function AttendanceManager({
 
   return (
     <div className="space-y-8">
+      {/* Hata Mesajı Uyarı Kutusu */}
+      {error && (
+        <div className="bg-red-50 border-l-8 border-red-600 p-6 rounded-3xl animate-in slide-in-from-top duration-300 shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="bg-red-600 p-2 rounded-full text-white">
+              <X size={20} strokeWidth={3} />
+            </div>
+            <div>
+              <p className="text-red-900 font-black uppercase text-sm tracking-widest">Dİkkat! İşlem Engellendi</p>
+              <p className="text-red-700 font-bold">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Üst Bar: Tarih ve Toplu İşlem */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-gray-800 p-6 rounded-[2rem] shadow-lg border border-gray-100 dark:border-gray-700">
         <div className="flex items-center gap-4">

@@ -21,7 +21,25 @@ export async function createWorkPlan(formData: FormData) {
 
   if (planError) throw planError
 
-  // 2. Oluşturan kişiyi Admin olarak plana ekle
+  // 2. Profil kontrolü (Foreign Key hatasını önlemek için)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) {
+    // Eğer profil yoksa (eski kullanıcı veya hata durumu), oluştur
+    await supabase
+      .from('profiles')
+      .insert([{
+        id: user.id,
+        username: user.email?.split('@')[0] || 'admin',
+        full_name: user.email?.split('@')[0] || 'Yönetici'
+      }])
+  }
+
+  // 3. Oluşturan kişiyi Admin olarak plana ekle
   const { error: memberError } = await supabase
     .from('work_plan_members')
     .insert([

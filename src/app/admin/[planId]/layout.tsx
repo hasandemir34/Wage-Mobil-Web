@@ -55,7 +55,7 @@ export default async function AdminLayout({
             </Link>
             <Link href={`/admin/${planId}/attendance`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
               <CalendarDays className="h-5 w-5 text-indigo-500" />
-              <span>Devamsızlık</span>
+              <span>Puantaj</span>
             </Link>
             <Link href={`/admin/${planId}/advances`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
               <WalletCards className="h-5 w-5 text-indigo-500" />

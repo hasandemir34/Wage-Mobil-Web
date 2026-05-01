@@ -111,3 +111,11 @@ FOR ALL USING ( EXISTS ( SELECT 1 FROM public.work_plan_members WHERE plan_id = 
 
 CREATE POLICY "Public can view invitation by token" ON public.invitations
 FOR SELECT USING ( true );
+
+-- 7. Audit & Integrity Updates
+ALTER TABLE public.invitations 
+  ADD COLUMN IF NOT EXISTS accepted_by uuid REFERENCES auth.users(id);
+
+ALTER TABLE public.attendance 
+  ADD CONSTRAINT no_overtime_when_absent 
+  CHECK (NOT (status = 'absent' AND overtime_hours > 0));

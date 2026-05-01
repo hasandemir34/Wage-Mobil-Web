@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { createWorkPlan } from './actions/plans'
-import { Plus, Layout, ArrowRight } from 'lucide-react'
+import { Plus, Layout, ArrowRight, LogOut } from 'lucide-react'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -16,14 +16,24 @@ export default async function HomePage() {
     .eq('user_id', user.id)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 relative">
+      {/* Üst Bar: Çıkış Yap */}
+      <div className="max-w-4xl mx-auto flex justify-end mb-8">
+        <form action="/auth/signout" method="post">
+          <button className="flex items-center gap-2 rounded-2xl bg-red-50 px-6 py-3 text-sm font-black text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 transition-all active:scale-95 shadow-sm border border-red-100 dark:border-red-900/30">
+            <LogOut className="h-5 w-5" />
+            <span>Sistemden Çıkış</span>
+          </button>
+        </form>
+      </div>
+
       <div className="max-w-4xl mx-auto space-y-12">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-            Yevmiye Takip Sistemi
+          <h1 className="text-5xl font-black text-gray-900 dark:text-white tracking-tighter">
+            Yevmiye Takip
           </h1>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-            Bir iş planı seçin veya yeni bir tane oluşturun.
+          <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-medium">
+            Devam etmek için bir iş planı seçin veya yeni bir tane oluşturun.
           </p>
         </div>
 
