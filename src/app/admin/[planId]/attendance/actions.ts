@@ -15,24 +15,23 @@ export async function saveAttendance(formData: FormData) {
   const overtime_hours = parseFloat(formData.get('overtime_hours') as string) || 0
   const multiplier = parseFloat(formData.get('multiplier') as string) || 1.5
 
-  // Önce kaydı kontrol et
-  const { data: existing } = await supabase
+  // Upsert logic: Eğer aynı gün için kayıt varsa güncelle, yoksa ekle
+  const { error } = await supabase
     .from('attendance')
-    .select('id')
-    .eq('plan_id', plan_id)
-    .eq('worker_id', worker_id)
-    .eq('date', date)
-    .single()
+    .upsert({ 
+      plan_id, 
+      worker_id, 
+      date, 
+      status, 
+      overtime_hours, 
+      multiplier 
+    }, { 
+      onConflict: 'plan_id,worker_id,date' 
+    })
 
-  if (existing) {
-    await supabase
-      .from('attendance')
-      .update({ status, overtime_hours, multiplier })
-      .eq('id', existing.id)
-  } else {
-    await supabase
-      .from('attendance')
-      .insert([{ plan_id, worker_id, date, status, overtime_hours, multiplier }])
+  if (error) {
+    console.error('Attendance Save Error:', error)
+    throw error
   }
 
   revalidatePath(`/admin/${plan_id}/attendance`)

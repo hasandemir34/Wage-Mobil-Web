@@ -44,14 +44,25 @@ export async function signup(formData: FormData) {
     redirect(`/login?message=${encodeURIComponent('Kullanıcı adı sadece küçük harf, rakam ve alt çizgi içerebilir.')}`)
   }
 
+  // 1. Kullanıcı adı zaten var mı kontrol et
+  const { data: existingUser } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('username', username)
+    .single()
+
+  if (existingUser) {
+    redirect(`/login?message=${encodeURIComponent('Bu kullanıcı adı zaten alınmış. Lütfen farklı bir ad seçin.')}`)
+  }
+
   const shadowEmail = `${username}@yevmiye.local`
 
-  const data = {
+  const authData = {
     email: shadowEmail,
     password: formData.get('password') as string,
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  const { data: signUpData, error } = await supabase.auth.signUp(authData)
 
   if (error) {
     const message = error.message.includes('already registered')
@@ -61,13 +72,19 @@ export async function signup(formData: FormData) {
   }
 
   // 4. Profil oluştur
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .insert([{
-      id: data.user?.id,
-      username: username,
-      full_name: username // Admin için başlangıçta username kullanabiliriz
-    }])
+  if (signUpData.user) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([{
+        id: signUpData.user.id,
+        username: username,
+        full_name: username 
+      }])
+    
+    if (profileError) {
+      console.error('Profil oluşturma hatası:', profileError)
+    }
+  }
 
   revalidatePath('/', 'layout')
   redirect(`/login?success=${encodeURIComponent('Kayıt başarılı! Şimdi giriş yapabilirsiniz.')}`)
