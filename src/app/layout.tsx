@@ -5,8 +5,22 @@ import { ReactNode } from 'react'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Yevmiye Takip Sistemi',
+  title: 'Yevmiyem',
   description: 'İşçi günlük yevmiye ve finansal takip sistemi',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Yevmiyem',
+  },
+}
+
+export const viewport = {
+  themeColor: '#4f46e5',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
