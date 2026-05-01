@@ -13,7 +13,7 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
 
   const { data: advances } = await supabase
     .from('advances')
-    .select('*, work_plan_members!advances_worker_id_fkey(full_name)')
+    .select('*')
     .eq('plan_id', planId)
     .order('date', { ascending: false })
 
@@ -72,15 +72,18 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {advances?.map(adv => (
-                <tr key={adv.id} className="hover:bg-red-50/30 dark:hover:bg-red-900/10 transition-all">
-                  <td className="px-8 py-6 text-lg font-bold text-gray-500">{new Date(adv.date).toLocaleDateString('tr-TR')}</td>
-                  <td className="px-8 py-6 text-xl font-bold text-gray-900 dark:text-white">{(adv as any).work_plan_members?.full_name}</td>
-                  <td className="px-8 py-6 text-right">
-                    <span className="text-2xl font-black text-red-600 dark:text-red-400">₺{adv.amount.toLocaleString('tr-TR')}</span>
-                  </td>
-                </tr>
-              ))}
+              {advances?.map(adv => {
+                const worker = workers?.find(w => w.user_id === adv.worker_id)
+                return (
+                  <tr key={adv.id} className="hover:bg-red-50/30 dark:hover:bg-red-900/10 transition-all">
+                    <td className="px-8 py-6 text-lg font-bold text-gray-500">{new Date(adv.date).toLocaleDateString('tr-TR')}</td>
+                    <td className="px-8 py-6 text-xl font-bold text-gray-900 dark:text-white">{worker?.full_name || 'Bilinmeyen İşçi'}</td>
+                    <td className="px-8 py-6 text-right">
+                      <span className="text-2xl font-black text-red-600 dark:text-red-400">₺{adv.amount.toLocaleString('tr-TR')}</span>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
