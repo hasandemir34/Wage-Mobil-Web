@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { HardHat, Banknote } from 'lucide-react'
+import { HardHat, Banknote, Ruler } from 'lucide-react'
 import ReportHeader from './ReportHeader'
 
 export default async function ReportPage({ 
@@ -94,8 +94,9 @@ export default async function ReportPage({
                 
                 const earnedWages = (fullDays * baseWage) + (halfDays * baseWage / 2)
                 const earnedConcrete = wAtt.reduce((sum, a) => sum + Number(a.concrete_bonus || 0), 0)
+                const earnedAks = wAtt.reduce((sum, a) => sum + Number(a.aks_bonus || 0), 0)
                 const paidTotal = wAdv.reduce((sum, a) => sum + Number(a.amount || 0), 0)
-                const balance = (earnedWages + earnedConcrete) - paidTotal
+                const balance = (earnedWages + earnedConcrete + earnedAks) - paidTotal
 
                 return (
                   <tr key={worker.user_id} className="font-bold text-gray-800">
@@ -103,6 +104,7 @@ export default async function ReportPage({
                     <td className="p-4 text-center">{fullDays + halfDays}</td>
                     <td className="p-4 text-right">₺{earnedWages.toLocaleString('tr-TR')}</td>
                     <td className="p-4 text-right">₺{earnedConcrete.toLocaleString('tr-TR')}</td>
+                    <td className="p-4 text-right">₺{earnedAks.toLocaleString('tr-TR')}</td>
                     <td className="p-4 text-right text-red-600">₺{paidTotal.toLocaleString('tr-TR')}</td>
                     <td className="p-4 text-right text-indigo-600 font-black">₺{balance.toLocaleString('tr-TR')}</td>
                   </tr>
@@ -112,13 +114,14 @@ export default async function ReportPage({
           </table>
         </div>
 
-        <div className="grid grid-cols-2 gap-12">
+        {/* Detaylı İşlem Geçmişi */}
+        <div className="grid grid-cols-3 gap-8">
           <div>
             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <HardHat size={14} className="text-orange-500" /> Son Beton Mesaileri
+              <HardHat size={14} className="text-orange-500" /> Son Beton Detayları
             </h3>
             <div className="space-y-2">
-              {attendance?.filter(a => a.is_concrete).slice(-10).map(a => {
+              {attendance?.filter(a => a.is_concrete).slice(-8).map(a => {
                 const w = workers?.find(work => work.user_id === a.worker_id)
                 return (
                   <div key={a.id} className="flex justify-between text-[10px] border-b border-gray-50 pb-1">
@@ -131,10 +134,26 @@ export default async function ReportPage({
           </div>
           <div>
             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Ruler size={14} className="text-blue-500" /> Son Aks Detayları
+            </h3>
+            <div className="space-y-2">
+              {attendance?.filter(a => a.is_aks).slice(-8).map(a => {
+                const w = workers?.find(work => work.user_id === a.worker_id)
+                return (
+                  <div key={a.id} className="flex justify-between text-[10px] border-b border-gray-50 pb-1">
+                    <span className="text-gray-500">{new Date(a.date).toLocaleDateString('tr-TR')} - {w?.full_name}</span>
+                    <span className="font-bold text-blue-600">+₺{a.aks_bonus}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Banknote size={14} className="text-red-600" /> Son Avanslar
             </h3>
             <div className="space-y-2">
-              {advances?.slice(-10).map(a => {
+              {advances?.slice(-8).map(a => {
                 const w = workers?.find(work => work.user_id === a.worker_id)
                 return (
                   <div key={a.id} className="flex justify-between text-[10px] border-b border-gray-50 pb-1">

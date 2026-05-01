@@ -9,7 +9,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
 
   const { data: workers } = await supabase
     .from('work_plan_members')
-    .select('*')
+    .select('*, profiles(username)')
     .eq('plan_id', planId)
     .eq('role', 'worker')
 
@@ -29,7 +29,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
   // Tüm yoklamaları çek (Hesaplama için)
   const { data: allAttendance } = await supabase
     .from('attendance')
-    .select('worker_id, status, concrete_bonus')
+    .select('worker_id, status, concrete_bonus, aks_bonus')
     .eq('plan_id', planId)
 
   // Toplam hakedişi hesapla
@@ -41,8 +41,9 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
       if (att.status === 'present') totalEarned += wage
       else if (att.status === 'half_day') totalEarned += (wage / 2)
       
-      // Beton bonuslarını da hakedişe ekle
+      // Beton ve Aks bonuslarını hakedişe ekle
       totalEarned += Number(att.concrete_bonus || 0)
+      totalEarned += Number(att.aks_bonus || 0)
     }
   })
 

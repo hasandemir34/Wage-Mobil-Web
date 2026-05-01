@@ -75,7 +75,11 @@ export default function WorkerDashboard({ params }: { params: any }) {
     return sum + Number(record.concrete_bonus || 0)
   }, 0) || 0
 
-  const totalEarned = totalWages + totalConcrete
+  const totalAks = attendance?.reduce((sum: number, record: any) => {
+    return sum + Number(record.aks_bonus || 0)
+  }, 0) || 0
+
+  const totalEarned = totalWages + totalConcrete + totalAks
   const totalAdvances = advances?.reduce((sum: number, item: any) => sum + Number(item.amount), 0) || 0
   const netBalance = totalEarned - totalAdvances
 
@@ -116,8 +120,8 @@ export default function WorkerDashboard({ params }: { params: any }) {
             <span>{formatCurrency(totalWages)}</span>
           </div>
           <div className="flex justify-between items-center text-xs font-black">
-            <span className="uppercase tracking-widest text-green-200">Beton Mesai Kazancı:</span>
-            <span className="bg-white/20 px-2 py-0.5 rounded-md">{formatCurrency(totalConcrete)}</span>
+            <span className="uppercase tracking-widest text-green-200">Ek Mesai (Beton+Aks):</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-md">{formatCurrency(totalConcrete + totalAks)}</span>
           </div>
           <div className="mt-1 pt-2 border-t border-white/10 flex justify-between items-center text-[10px] font-bold opacity-60 uppercase tracking-widest">
             <span>Toplam Hak Ediş:</span>

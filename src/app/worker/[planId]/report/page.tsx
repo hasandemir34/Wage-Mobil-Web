@@ -46,7 +46,7 @@ export default async function WorkerReportPage({
   attendance?.forEach(r => {
     const monthKey = new Date(r.date).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
     if (!monthlyData[monthKey]) {
-      monthlyData[monthKey] = { full: 0, half: 0, concrete: 0, wageEarned: 0, concreteEarned: 0, advances: 0 }
+      monthlyData[monthKey] = { full: 0, half: 0, concrete: 0, aks: 0, wageEarned: 0, concreteEarned: 0, aksEarned: 0, advances: 0 }
     }
     
     if (r.status === 'present') {
@@ -61,12 +61,17 @@ export default async function WorkerReportPage({
       monthlyData[monthKey].concrete += 1
       monthlyData[monthKey].concreteEarned += Number(r.concrete_bonus || 0)
     }
+
+    if (r.is_aks) {
+      monthlyData[monthKey].aks += 1
+      monthlyData[monthKey].aksEarned += Number(r.aks_bonus || 0)
+    }
   })
 
   advances?.forEach(a => {
     const monthKey = new Date(a.date).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
     if (!monthlyData[monthKey]) {
-      monthlyData[monthKey] = { full: 0, half: 0, concrete: 0, wageEarned: 0, concreteEarned: 0, advances: 0 }
+      monthlyData[monthKey] = { full: 0, half: 0, concrete: 0, aks: 0, wageEarned: 0, concreteEarned: 0, aksEarned: 0, advances: 0 }
     }
     monthlyData[monthKey].advances += Number(a.amount || 0)
   })
@@ -135,7 +140,7 @@ export default async function WorkerReportPage({
               <tbody className="divide-y divide-gray-100">
                 {Object.keys(monthlyData).reverse().map(month => {
                   const data = monthlyData[month]
-                  const monthlyTotal = (data.wageEarned + data.concreteEarned) - data.advances
+                  const monthlyTotal = (data.wageEarned + data.concreteEarned + data.aksEarned || 0) - data.advances
                   return (
                     <tr key={month} className="text-gray-700 font-bold hover:bg-gray-50 transition-colors">
                       <td className="p-5 text-sm uppercase">{month}</td>
@@ -145,12 +150,12 @@ export default async function WorkerReportPage({
                         <span className="text-orange-600">{data.half} Yarım</span>
                       </td>
                       <td className="p-5 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <HardHat size={14} className={data.concrete > 0 ? 'text-orange-500' : 'text-gray-200'} />
-                          <span className={data.concrete > 0 ? 'text-orange-600' : 'text-gray-300'}>{data.concrete} Seans</span>
+                        <div className="flex flex-col items-center justify-center gap-1 text-[10px]">
+                          <span className={data.concrete > 0 ? 'text-orange-600' : 'text-gray-300'}>Beton: {data.concrete} Kez</span>
+                          <span className={data.aks > 0 ? 'text-blue-600' : 'text-gray-300'}>Aks: {data.aks || 0} Kez</span>
                         </div>
                       </td>
-                      <td className="p-5 text-right text-sm">₺{(data.wageEarned + data.concreteEarned).toLocaleString('tr-TR')}</td>
+                      <td className="p-5 text-right text-sm">₺{(data.wageEarned + data.concreteEarned + (data.aksEarned || 0)).toLocaleString('tr-TR')}</td>
                       <td className="p-5 text-right text-sm text-red-600">₺{data.advances.toLocaleString('tr-TR')}</td>
                       <td className={`p-5 text-right text-base font-black ${monthlyTotal >= 0 ? 'text-indigo-600' : 'text-red-700'}`}>
                         ₺{monthlyTotal.toLocaleString('tr-TR')}
