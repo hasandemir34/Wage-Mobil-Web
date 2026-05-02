@@ -121,6 +121,23 @@ ALTER TABLE public.invitations
 ALTER TABLE public.invitations
   ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
 
-ALTER TABLE public.attendance 
-  ADD CONSTRAINT no_overtime_when_absent 
+ALTER TABLE public.attendance
+  ADD CONSTRAINT no_overtime_when_absent
   CHECK (NOT (status = 'absent' AND overtime_hours > 0));
+
+-- Performans İndeksleri
+-- attendance: plan bazlı toplu sorgular ve işçi bazlı filtreleme için
+CREATE INDEX IF NOT EXISTS idx_attendance_plan_id ON public.attendance(plan_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_plan_worker ON public.attendance(plan_id, worker_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_plan_date ON public.attendance(plan_id, date);
+
+-- advances: plan bazlı toplu sorgular ve işçi bazlı filtreleme için
+CREATE INDEX IF NOT EXISTS idx_advances_plan_id ON public.advances(plan_id);
+CREATE INDEX IF NOT EXISTS idx_advances_plan_worker ON public.advances(plan_id, worker_id);
+
+-- work_plan_members: kullanıcı ve rol bazlı filtreleme için
+CREATE INDEX IF NOT EXISTS idx_wpm_plan_role ON public.work_plan_members(plan_id, role);
+CREATE INDEX IF NOT EXISTS idx_wpm_user_id ON public.work_plan_members(user_id);
+
+-- invitations: plan + status bazlı filtreleme için
+CREATE INDEX IF NOT EXISTS idx_invitations_plan_status ON public.invitations(plan_id, status);

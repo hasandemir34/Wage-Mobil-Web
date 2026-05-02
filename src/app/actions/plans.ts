@@ -18,20 +18,14 @@ export async function createWorkPlan(formData: FormData) {
     throw new Error(`Proje adı ${MIN_NAME_LENGTH} ile ${MAX_NAME_LENGTH} karakter arasında olmalıdır.`)
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, id')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, { count, error: countError }] = await Promise.all([
+    supabase.from('profiles').select('role, id').eq('id', user.id).single(),
+    supabase.from('work_plans').select('*', { count: 'exact', head: true }).eq('created_by', user.id),
+  ])
 
   if (profile?.role === 'worker') {
     throw new Error('Güvenlik: İşçi hesapları yeni proje oluşturamaz.')
   }
-
-  const { count, error: countError } = await supabase
-    .from('work_plans')
-    .select('*', { count: 'exact', head: true })
-    .eq('created_by', user.id)
 
   if (countError) throw countError
   if (count && count >= MAX_PLANS_COUNT) {

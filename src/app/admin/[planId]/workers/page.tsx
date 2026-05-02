@@ -8,19 +8,18 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
   const { planId } = await params
   const supabase = await createClient()
 
-  // Aktif işçiler
-  const { data: workers } = await supabase
-    .from('work_plan_members')
-    .select('*, profiles(username)')
-    .eq('plan_id', planId)
-    .eq('role', 'worker')
-
-  // Bekleyen davetiyeler
-  const { data: invitations } = await supabase
-    .from('invitations')
-    .select('*')
-    .eq('plan_id', planId)
-    .eq('status', 'pending')
+  const [{ data: workers }, { data: invitations }] = await Promise.all([
+    supabase
+      .from('work_plan_members')
+      .select('*, profiles(username)')
+      .eq('plan_id', planId)
+      .eq('role', 'worker'),
+    supabase
+      .from('invitations')
+      .select('*')
+      .eq('plan_id', planId)
+      .eq('status', 'pending'),
+  ])
 
   return (
     <div className="space-y-12 pb-24">

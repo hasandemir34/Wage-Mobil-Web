@@ -14,21 +14,25 @@ export default async function PaymentsPage({ params }: { params: Promise<{ planI
   const { planId } = await params
   const supabase = await createClient()
 
-  const { data: workers } = await supabase
-    .from('work_plan_members')
-    .select('user_id, full_name, base_daily_wage, profiles(username)')
-    .eq('plan_id', planId)
-    .eq('role', 'worker')
-
-  const { data: allAttendance } = await supabase
-    .from('attendance')
-    .select('worker_id, status')
-    .eq('plan_id', planId)
-
-  const { data: allAdvances } = await supabase
-    .from('advances')
-    .select('worker_id, amount')
-    .eq('plan_id', planId)
+  const [
+    { data: workers },
+    { data: allAttendance },
+    { data: allAdvances },
+  ] = await Promise.all([
+    supabase
+      .from('work_plan_members')
+      .select('user_id, full_name, base_daily_wage, profiles(username)')
+      .eq('plan_id', planId)
+      .eq('role', 'worker'),
+    supabase
+      .from('attendance')
+      .select('worker_id, status')
+      .eq('plan_id', planId),
+    supabase
+      .from('advances')
+      .select('worker_id, amount')
+      .eq('plan_id', planId),
+  ])
 
   const report = (workers as WorkerMember[] | null)?.map(worker => {
     const workerAttendance = allAttendance?.filter(a => a.worker_id === worker.user_id) || []
