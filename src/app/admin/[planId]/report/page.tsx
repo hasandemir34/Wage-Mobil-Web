@@ -48,12 +48,12 @@ export default async function ReportPage({
     .order('date', { ascending: true })
 
   return (
-    <div className="bg-white min-h-screen p-8 print:p-0">
+    <div className="bg-white min-h-screen p-4 sm:p-8 print:p-0">
       {/* Yazdırma Kontrol Paneli (Client Component) */}
       <ReportHeader planId={planId} />
 
       {/* Rapor İçeriği */}
-      <div className="max-w-5xl mx-auto border-2 border-gray-100 p-12 rounded-[3rem] print:border-none print:p-0 bg-white shadow-sm">
+      <div className="max-w-5xl mx-auto border-2 border-gray-100 p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] print:border-none print:p-0 bg-white shadow-sm">
         {/* Antet / Başlık */}
         <div className="flex justify-between items-start border-b-4 border-gray-900 pb-8 mb-12">
           <div>
@@ -72,50 +72,67 @@ export default async function ReportPage({
           <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
              HAKEDİŞ VE ÖDEME ÖZETİ
           </h2>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-900 text-white">
-                <th className="p-4 text-xs font-black uppercase tracking-widest">İşçi Adı</th>
-                <th className="p-4 text-xs font-black uppercase tracking-widest text-center">Çalışılan Gün</th>
-                <th className="p-4 text-xs font-black uppercase tracking-widest text-right">Yevmiye Toplam</th>
-                <th className="p-4 text-xs font-black uppercase tracking-widest text-right">Beton Toplam</th>
-                <th className="p-4 text-xs font-black uppercase tracking-widest text-right">Avans/Ödenen</th>
-                <th className="p-4 text-xs font-black uppercase tracking-widest text-right">Kalan Alacak</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y-2 divide-gray-100">
-              {workers?.map(worker => {
-                const wAtt = attendance?.filter(a => a.worker_id === worker.user_id) || []
-                const wAdv = advances?.filter(a => a.worker_id === worker.user_id) || []
-                
-                const fullDays = wAtt.filter(a => a.status === 'present').length
-                const halfDays = wAtt.filter(a => a.status === 'half_day').length
-                const baseWage = Number(worker.base_daily_wage || 0)
-                
-                const earnedWages = (fullDays * baseWage) + (halfDays * baseWage / 2)
-                const earnedConcrete = wAtt.reduce((sum, a) => sum + Number(a.concrete_bonus || 0), 0)
-                const earnedAks = wAtt.reduce((sum, a) => sum + Number(a.aks_bonus || 0), 0)
-                const paidTotal = wAdv.reduce((sum, a) => sum + Number(a.amount || 0), 0)
-                const balance = (earnedWages + earnedConcrete + earnedAks) - paidTotal
+          <div className="w-full overflow-x-auto pb-4">
+            <table className="w-full text-left border-collapse min-w-[800px] border border-gray-300">
+              <thead>
+                <tr className="bg-white text-gray-900 border-b-2 border-gray-900">
+                  <th className="p-4 text-xs font-black uppercase tracking-widest border border-gray-300">İşçi Adı</th>
+                  <th className="p-4 text-xs font-black uppercase tracking-widest text-center border border-gray-300">Çalışılan Gün</th>
+                  <th className="p-4 text-xs font-black uppercase tracking-widest text-center border border-gray-300">Toplam Beton</th>
+                  <th className="p-4 text-xs font-black uppercase tracking-widest text-center border border-gray-300">Toplam Aks</th>
+                  <th className="p-4 text-xs font-black uppercase tracking-widest text-right text-indigo-600 border border-gray-300">Toplam Hakedİş</th>
+                  <th className="p-4 text-xs font-black uppercase tracking-widest text-right text-red-600 border border-gray-300">Çekİlen Avans</th>
+                  <th className="p-4 text-xs font-black uppercase tracking-widest text-right text-green-600 border border-gray-300">Kalan Alacak</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-300">
+                {workers?.map(worker => {
+                  const wAtt = attendance?.filter(a => a.worker_id === worker.user_id) || []
+                  const wAdv = advances?.filter(a => a.worker_id === worker.user_id) || []
+                  
+                  const fullDays = wAtt.filter(a => a.status === 'present').length
+                  const halfDays = wAtt.filter(a => a.status === 'half_day').length
+                  const baseWage = Number(worker.base_daily_wage || 0)
 
-                return (
-                  <tr key={worker.user_id} className="font-bold text-gray-800">
-                    <td className="p-4 text-lg">{worker.full_name}</td>
-                    <td className="p-4 text-center">{fullDays + halfDays}</td>
-                    <td className="p-4 text-right">₺{earnedWages.toLocaleString('tr-TR')}</td>
-                    <td className="p-4 text-right">₺{earnedConcrete.toLocaleString('tr-TR')}</td>
-                    <td className="p-4 text-right">₺{earnedAks.toLocaleString('tr-TR')}</td>
-                    <td className="p-4 text-right text-red-600">₺{paidTotal.toLocaleString('tr-TR')}</td>
-                    <td className="p-4 text-right text-indigo-600 font-black">₺{balance.toLocaleString('tr-TR')}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                  const concreteCount = wAtt.filter(a => a.is_concrete).length
+                  const aksCount = wAtt.filter(a => a.is_aks).length
+                  
+                  const earnedWages = (fullDays * baseWage) + (halfDays * baseWage / 2)
+                  const earnedConcrete = wAtt.reduce((sum, a) => sum + Number(a.concrete_bonus || 0), 0)
+                  const earnedAks = wAtt.reduce((sum, a) => sum + Number(a.aks_bonus || 0), 0)
+                  const totalEarned = earnedWages + earnedConcrete + earnedAks
+                  const paidTotal = wAdv.reduce((sum, a) => sum + Number(a.amount || 0), 0)
+                  const balance = totalEarned - paidTotal
+
+                  return (
+                    <tr key={worker.user_id} className="font-bold text-gray-800 hover:bg-gray-50 transition-colors">
+                      <td className="p-4 text-lg border border-gray-300 bg-white">{worker.full_name}</td>
+                      <td className="p-4 text-center border border-gray-300 bg-white">{fullDays + halfDays}</td>
+                      <td className="p-4 text-center border border-gray-300 bg-white">
+                        <div className="flex flex-col text-xs">
+                          <span className="text-orange-600">{concreteCount} Kez</span>
+                          <span className="font-black">₺{earnedConcrete.toLocaleString('tr-TR')}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-center border border-gray-300 bg-white">
+                        <div className="flex flex-col text-xs">
+                          <span className="text-blue-600">{aksCount} Kez</span>
+                          <span className="font-black">₺{earnedAks.toLocaleString('tr-TR')}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-right text-indigo-600 border border-gray-300 bg-white">₺{totalEarned.toLocaleString('tr-TR')}</td>
+                      <td className="p-4 text-right text-red-600 font-bold border border-gray-300 bg-white">₺{paidTotal.toLocaleString('tr-TR')}</td>
+                      <td className="p-4 text-right bg-white font-black text-green-600 border border-gray-300">₺{balance.toLocaleString('tr-TR')}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Detaylı İşlem Geçmişi */}
-        <div className="grid grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
           <div>
             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <HardHat size={14} className="text-orange-500" /> Son Beton Detayları

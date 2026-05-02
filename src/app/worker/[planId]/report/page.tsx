@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { HardHat, Wallet, Calendar as CalendarIcon, History, TrendingUp } from 'lucide-react'
+import { TrendingUp } from 'lucide-react'
 import WorkerReportHeader from './WorkerReportHeader'
 
 export default async function WorkerReportPage({ 
@@ -90,7 +90,7 @@ export default async function WorkerReportPage({
     <div className="bg-white min-h-screen p-4 sm:p-10 print:p-0">
       <WorkerReportHeader planId={planId} />
 
-      <div className="max-w-4xl mx-auto border-2 border-gray-100 p-8 sm:p-12 rounded-[3rem] print:border-none print:p-0 shadow-sm bg-white">
+      <div className="max-w-4xl mx-auto border-2 border-gray-100 p-4 sm:p-12 rounded-[2rem] sm:rounded-[3rem] print:border-none print:p-0 shadow-sm bg-white">
         {/* Header */}
         <div className="flex justify-between items-start border-b-4 border-indigo-600 pb-8 mb-10">
           <div>
@@ -105,7 +105,7 @@ export default async function WorkerReportPage({
         </div>
 
         {/* Genel Toplam Kartları */}
-        <div className="grid grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-12">
           <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
             <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Toplam Kazanç</p>
             <p className="text-2xl font-black text-indigo-900">₺{totalEarned.toLocaleString('tr-TR')}</p>
@@ -125,8 +125,8 @@ export default async function WorkerReportPage({
           <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-2">
             <TrendingUp size={18} className="text-indigo-600" /> AYLIK ÇALIŞMA ÖZETİ
           </h2>
-          <div className="overflow-hidden rounded-[2rem] border-2 border-gray-50">
-            <table className="w-full text-left border-collapse">
+          <div className="w-full overflow-x-auto overflow-y-hidden rounded-[2rem] border-2 border-gray-50">
+            <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
                 <tr className="bg-gray-900 text-white">
                   <th className="p-5 text-[10px] font-black uppercase tracking-widest">Dönem / Ay</th>

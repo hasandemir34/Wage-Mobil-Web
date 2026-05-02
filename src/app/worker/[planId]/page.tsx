@@ -23,33 +23,23 @@ export default function WorkerDashboard({ params }: { params: any }) {
         return
       }
 
-      const { data: membership } = await supabase
-        .from('work_plan_members')
-        .select('*, work_plans(name)')
-        .eq('plan_id', planId)
-        .eq('user_id', user.id)
-        .single()
+      // Parallel fetching for performance
+      const [membershipRes, attendanceRes, advancesRes] = await Promise.all([
+        supabase.from('work_plan_members').select('*, work_plans(name)').eq('plan_id', planId).eq('user_id', user.id).single(),
+        supabase.from('attendance').select('date, status, concrete_bonus, aks_bonus').eq('plan_id', planId).eq('worker_id', user.id).order('date', { ascending: false }),
+        supabase.from('advances').select('amount, date, description').eq('plan_id', planId).eq('worker_id', user.id).order('date', { ascending: false })
+      ])
 
-      if (!membership) {
+      if (!membershipRes.data) {
         redirect('/')
         return
       }
 
-      const { data: attendance } = await supabase
-        .from('attendance')
-        .select('*')
-        .eq('plan_id', planId)
-        .eq('worker_id', user.id)
-        .order('date', { ascending: false })
-
-      const { data: advances } = await supabase
-        .from('advances')
-        .select('*')
-        .eq('plan_id', planId)
-        .eq('worker_id', user.id)
-        .order('date', { ascending: false })
-
-      setData({ membership, attendance, advances })
+      setData({ 
+        membership: membershipRes.data, 
+        attendance: attendanceRes.data || [], 
+        advances: advancesRes.data || [] 
+      })
       setLoading(false)
     }
     fetchData()
@@ -199,13 +189,13 @@ export default function WorkerDashboard({ params }: { params: any }) {
 
       {/* TAKVİM MODALI */}
       {showCalendar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 backdrop-blur-md bg-black/60 transition-all">
-          <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl relative animate-in fade-in zoom-in duration-300 overflow-hidden border-4 border-white/10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 backdrop-blur-md bg-black/60 transition-all">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-3xl sm:rounded-[2.5rem] shadow-2xl relative animate-in fade-in zoom-in duration-300 overflow-hidden border-4 border-white/10">
             {/* Kapatma Butonu - Daha Üstte ve Belirgin */}
             <div className="absolute top-4 right-4 z-50">
               <button 
                 onClick={() => setShowCalendar(false)}
-                className="p-3 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl hover:bg-red-500 hover:text-white text-gray-500 transition-all shadow-lg active:scale-90"
+                className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl hover:bg-red-500 hover:text-white text-gray-500 transition-all shadow-lg active:scale-90"
               >
                 <X size={24} strokeWidth={3} />
               </button>

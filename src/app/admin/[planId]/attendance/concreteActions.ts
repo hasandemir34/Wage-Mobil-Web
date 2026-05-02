@@ -11,6 +11,13 @@ export async function saveConcreteAttendance(
 ) {
   const supabase = await createClient()
 
+  // Türkiye saatine göre bugünü al
+  const turkeyToday = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
+
+  if (date > turkeyToday) {
+    throw new Error('Gelecek bir tarih için kayıt girişi yapılamaz.')
+  }
+
   // Önce o günkü mevcut beton kayıtlarını temizle
   await supabase
     .from('attendance')

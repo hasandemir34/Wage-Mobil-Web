@@ -43,14 +43,14 @@ export default async function WorkerLayout({
               <Wallet className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               <span className="text-xl font-bold text-gray-900 dark:text-white">Yevmiye Takip</span>
             </div>
-            <div className="flex items-center gap-4">
-              <Link href="/" className="text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Link href="/" className="text-[10px] sm:text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors uppercase">
                 Plan Değiştir
               </Link>
               <form action="/auth/signout" method="post">
-                <button className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-sm font-black text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors active:scale-95 shadow-sm">
-                  <LogOut className="h-4 w-4" />
-                  <span>Çıkış Yap</span>
+                <button className="flex items-center gap-2 rounded-xl bg-red-50 px-3 sm:px-4 py-2 text-[10px] sm:text-sm font-black text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors active:scale-95 shadow-sm uppercase">
+                  <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Çıkış</span>
                 </button>
               </form>
             </div>

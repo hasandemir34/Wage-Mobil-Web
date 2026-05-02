@@ -1,6 +1,4 @@
 import { createClient } from '@/utils/supabase/server'
-import { addAdvance } from './actions'
-import { Banknote } from 'lucide-react'
 import AdvanceForm from './AdvanceForm'
 
 export default async function AdvancesPage({ params }: { params: Promise<{ planId: string }> }) {

@@ -45,17 +45,17 @@ export default function WorkerCalendar({ attendance }: { attendance: AttendanceR
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-6 shadow-xl border border-gray-100 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-8 px-2">
+    <div className="bg-white dark:bg-gray-800 rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-6 shadow-xl border border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-6 sm:mb-8 px-1 sm:px-2">
         <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
           <CalendarIcon className="text-indigo-600" size={24} />
           {months[month]} {year}
         </h3>
         <div className="flex gap-2">
-          <button onClick={prevMonth} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-2xl hover:bg-indigo-50 transition-all">
+          <button onClick={prevMonth} className="p-3 w-12 h-12 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded-2xl hover:bg-indigo-50 transition-all">
             <ChevronLeft size={20} />
           </button>
-          <button onClick={nextMonth} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-2xl hover:bg-indigo-50 transition-all">
+          <button onClick={nextMonth} className="p-3 w-12 h-12 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded-2xl hover:bg-indigo-50 transition-all">
             <ChevronRight size={20} />
           </button>
         </div>
@@ -77,12 +77,12 @@ export default function WorkerCalendar({ attendance }: { attendance: AttendanceR
             <div 
               key={idx} 
               className={`
-                aspect-square flex items-center justify-center text-2xl font-black transition-all relative rounded-full
+                aspect-square flex items-center justify-center text-lg sm:text-2xl font-black transition-all relative rounded-full min-h-[40px] sm:min-h-[44px]
                 ${!day ? 'bg-transparent' : 'text-gray-400'}
                 ${status === 'present' ? 'text-green-500' : ''}
                 ${status === 'half_day' ? 'text-orange-500' : ''}
                 ${status === 'absent' ? 'text-red-500' : ''}
-                ${isConcrete ? 'ring-4 ring-orange-500 ring-offset-2 dark:ring-offset-gray-800 shadow-lg shadow-orange-500/20' : ''}
+                ${isConcrete ? 'ring-2 sm:ring-4 ring-orange-500 ring-offset-1 sm:ring-offset-2 dark:ring-offset-gray-800 shadow-lg shadow-orange-500/20' : ''}
               `}
             >
               {day}

@@ -26,27 +26,24 @@ export default function AttendanceManager({
   planId: string,
   currentDate: string 
 }) {
-  const [attendance, setAttendance] = useState<Record<string, string>>({})
-  const [saving, setSaving] = useState<string | null>(null)
-  const [saved, setSaved] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
+  const [attendance, setAttendance] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {}
     workers.forEach(w => {
       const record = initialAttendance.find(a => a.worker_id === w.user_id)
       initial[w.user_id] = record?.status || 'absent'
     })
-    setAttendance(initial)
-  }, [initialAttendance, workers])
+    return initial
+  })
+  const [saving, setSaving] = useState<string | null>(null)
+  const [saved, setSaved] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleStatusChange = async (workerId: string, status: string) => {
     try {
-      const selectedDate = new Date(currentDate)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      // Türkiye saatine göre bugünün tarihini al (YYYY-MM-DD)
+      const turkeyTodayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
       
-      if (selectedDate > today) {
+      if (currentDate > turkeyTodayStr) {
         setError('Gelecek bir tarih için kayıt girişi yapılamaz.')
         setTimeout(() => setError(null), 5000)
         return
@@ -132,16 +129,19 @@ export default function AttendanceManager({
       <div className="grid gap-4">
         {workers.map((worker) => (
           <div key={worker.user_id} className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-md transition-all">
-            <div className="flex items-center gap-4 self-start sm:self-center">
-              <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-2xl text-gray-400">
-                <Users size={24} />
+            <div className="flex items-center gap-3 self-start sm:self-center">
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 sm:p-4 rounded-2xl text-gray-400 shrink-0">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <h4 className="text-xl font-black text-gray-900 dark:text-white">
+              <div className="min-w-0">
+                <h4 className="text-base sm:text-xl font-black text-gray-900 dark:text-white truncate">
                   {worker.full_name} 
-                  <span className="text-sm font-bold text-gray-400 ml-2">(@{(worker as any).profiles?.username})</span>
                 </h4>
-                <p className="text-sm font-bold text-gray-400 uppercase">₺{worker.base_daily_wage} Yevmiye</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                  <span className="text-[10px] sm:text-sm font-bold text-gray-400 uppercase">@{(worker as any).profiles?.username}</span>
+                  <span className="hidden sm:inline text-gray-300 mx-1">•</span>
+                  <span className="text-[10px] sm:text-sm font-bold text-indigo-600 uppercase">₺{worker.base_daily_wage} Yevmİye</span>
+                </div>
               </div>
             </div>
 

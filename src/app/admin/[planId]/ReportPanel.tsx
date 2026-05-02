@@ -82,7 +82,7 @@ export default function ReportPanel({ planId }: { planId: string }) {
             <div className="mt-8 p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-[2rem] border border-indigo-100 dark:border-indigo-800 flex gap-4">
               <Printer className="text-indigo-600 shrink-0 mt-1" size={20} />
               <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300 leading-relaxed">
-                Rapor sayfasında "PDF OLARAK KAYDET" butonunu kullanarak dökümanı indirebilirsiniz.
+                Rapor sayfasında &quot;PDF OLARAK KAYDET&quot; butonunu kullanarak dökümanı indirebilirsiniz.
               </p>
             </div>
           </div>

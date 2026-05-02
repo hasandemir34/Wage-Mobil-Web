@@ -40,8 +40,8 @@ export async function signup(formData: FormData) {
   const rawUsername = formData.get('username') as string
   const username = rawUsername.toLowerCase().trim()
 
-  if (!/^[a-z0-9_çğıöşü]+$/.test(username)) {
-    redirect(`/login?message=${encodeURIComponent('Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir.')}`)
+  if (!/^[a-z0-9_]+$/.test(username)) {
+    redirect(`/login?message=${encodeURIComponent('Kullanıcı adı sadece İngilizce küçük harf, rakam ve alt çizgi içerebilir.')}`)
   }
 
   // 1. Kullanıcı adı zaten var mı kontrol et

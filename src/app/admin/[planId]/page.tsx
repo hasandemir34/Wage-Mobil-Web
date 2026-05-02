@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { Users, WalletCards, Briefcase, ArrowRight } from 'lucide-react'
+import { WalletCards, Briefcase, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import ReportPanel from './ReportPanel'
 
@@ -7,49 +7,38 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
   const { planId } = await params
   const supabase = await createClient()
 
-  const { data: workers } = await supabase
-    .from('work_plan_members')
-    .select('*, profiles(username)')
-    .eq('plan_id', planId)
-    .eq('role', 'worker')
-
-  const { data: advances } = await supabase
-    .from('advances')
-    .select('amount')
-    .eq('plan_id', planId)
-  
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
-  const { data: todayAttendance } = await supabase
-    .from('attendance')
-    .select('id')
-    .eq('plan_id', planId)
-    .eq('date', today)
-    .eq('status', 'present')
 
-  // Tüm yoklamaları çek (Hesaplama için)
-  const { data: allAttendance } = await supabase
-    .from('attendance')
-    .select('worker_id, status, concrete_bonus, aks_bonus')
-    .eq('plan_id', planId)
+  // Parallel data fetching for maximum speed
+  const [workersRes, advancesRes, todayAttendanceRes, allAttendanceRes] = await Promise.all([
+    supabase.from('work_plan_members').select('user_id, base_daily_wage').eq('plan_id', planId).eq('role', 'worker'),
+    supabase.from('advances').select('amount').eq('plan_id', planId),
+    supabase.from('attendance').select('id').eq('plan_id', planId).eq('date', today).eq('status', 'present'),
+    supabase.from('attendance').select('worker_id, status, concrete_bonus, aks_bonus').eq('plan_id', planId)
+  ])
 
-  // Toplam hakedişi hesapla
+  const workers = workersRes.data || []
+  const advances = advancesRes.data || []
+  const todayAttendance = todayAttendanceRes.data || []
+  const allAttendance = allAttendanceRes.data || []
+
+  // Optimize calculation: Create a lookup map for worker wages
+  const workerWageMap = new Map(workers.map(w => [w.user_id, Number(w.base_daily_wage || 0)]))
+  
   let totalEarned = 0
-  allAttendance?.forEach(att => {
-    const worker = workers?.find(w => w.user_id === att.worker_id)
-    if (worker) {
-      const wage = Number(worker.base_daily_wage || 0)
+  allAttendance.forEach(att => {
+    const wage = workerWageMap.get(att.worker_id)
+    if (wage !== undefined) {
       if (att.status === 'present') totalEarned += wage
       else if (att.status === 'half_day') totalEarned += (wage / 2)
       
-      // Beton ve Aks bonuslarını hakedişe ekle
       totalEarned += Number(att.concrete_bonus || 0)
       totalEarned += Number(att.aks_bonus || 0)
     }
   })
 
-  const totalWorkers = workers?.length || 0
-  const totalAdvances = advances?.reduce((sum, item) => sum + Number(item.amount), 0) || 0
-  const activeToday = todayAttendance?.length || 0
+  const totalAdvances = advances.reduce((sum, item) => sum + Number(item.amount), 0)
+  const activeToday = todayAttendance.length
   const netBalance = totalEarned - totalAdvances
   
   return (

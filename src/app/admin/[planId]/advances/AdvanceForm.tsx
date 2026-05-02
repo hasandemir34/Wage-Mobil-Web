@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Banknote, X, AlertCircle } from 'lucide-react'
+import { Banknote, AlertCircle } from 'lucide-react'
 import { addAdvance } from './actions'
 
 export default function AdvanceForm({ planId, workers, today }: { planId: string, workers: any[], today: string }) {

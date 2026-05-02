@@ -30,8 +30,8 @@ export async function acceptInvitation(formData: FormData) {
   const rawUsername = formData.get('username') as string
   const username = rawUsername.toLowerCase().trim()
 
-  if (!/^[a-z0-9_çğıöşü]+$/.test(username)) {
-    redirect(`/invite/${token}?error=${encodeURIComponent('Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir.')}`)
+  if (!/^[a-z0-9_]+$/.test(username)) {
+    redirect(`/invite/${token}?error=${encodeURIComponent('Kullanıcı adı sadece İngilizce harf, rakam ve alt çizgi içerebilir.')}`)
   }
 
   // 1. Davetiyeyi bul

@@ -94,8 +94,8 @@ export default async function InvitePage({
                 type="text" 
                 required 
                 placeholder="Örn: ahmet_usta"
-                pattern="^[a-zA-Z0-9_çğıöşüÇĞİÖŞÜ]+$"
-                title="Sadece harf, rakam ve alt çizgi kullanabilirsiniz."
+                pattern="^[a-zA-Z0-9_]+$"
+                title="Sadece İngilizce harfler, rakamlar ve alt çizgi kullanabilirsiniz."
                 className="w-full px-4 py-4 bg-white text-gray-900 border border-gray-300 rounded-xl text-xl placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
               />
             </div>

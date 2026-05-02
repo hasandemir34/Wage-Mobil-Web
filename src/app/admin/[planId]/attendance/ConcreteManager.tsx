@@ -71,7 +71,7 @@ export default function ConcreteManager({
             type="number" 
             value={bonus}
             onChange={(e) => setBonus(Number(e.target.value))}
-            className={`w-20 px-3 py-1 rounded-lg text-sm font-black outline-none transition-all
+            className={`w-20 min-h-[44px] px-3 py-1 rounded-lg text-sm font-black outline-none transition-all
               ${isActive ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'}
             `}
           />
@@ -86,7 +86,7 @@ export default function ConcreteManager({
               key={w.user_id}
               onClick={() => toggleWorker(w.user_id)}
               className={`
-                px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all flex items-center gap-1
+                min-h-[44px] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all flex items-center gap-1
                 ${isSel 
                   ? 'bg-white text-orange-600 shadow-lg' 
                   : 'bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-orange-600'}
@@ -103,7 +103,7 @@ export default function ConcreteManager({
         onClick={handleSave}
         disabled={loading}
         className={`
-          w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2
+          w-full min-h-[44px] py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2
           ${isActive 
             ? 'bg-white text-orange-600 hover:bg-orange-50' 
             : 'bg-orange-600 text-white hover:bg-orange-700'}
