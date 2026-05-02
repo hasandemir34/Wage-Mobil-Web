@@ -1,8 +1,9 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, CalendarDays, WalletCards, LogOut } from 'lucide-react'
+import { LayoutDashboard, LogOut } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { SidebarNav, BottomNav } from './NavLinks'
 
 export default async function AdminLayout({ 
   children, 
@@ -46,24 +47,7 @@ export default async function AdminLayout({
           </h1>
         </div>
         <div className="flex flex-1 flex-col overflow-y-auto p-4">
-          <nav className="flex-1 space-y-2">
-            <Link href={`/admin/${planId}/attendance`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700 transition-colors font-bold">
-              <CalendarDays className="h-5 w-5 text-indigo-500" />
-              <span>Puantaj</span>
-            </Link>
-            <Link href={`/admin/${planId}/advances`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
-              <WalletCards className="h-5 w-5 text-indigo-500" />
-              <span>Avanslar</span>
-            </Link>
-            <Link href={`/admin/${planId}`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
-              <LayoutDashboard className="h-5 w-5 text-indigo-500" />
-              <span>Özet</span>
-            </Link>
-            <Link href={`/admin/${planId}/workers`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
-              <Users className="h-5 w-5 text-indigo-500" />
-              <span>İşçiler</span>
-            </Link>
-          </nav>
+          <SidebarNav planId={planId} />
         </div>
         <div className="flex flex-col gap-2 border-t border-gray-200 p-4 dark:border-gray-700">
           <Link href="/" className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
@@ -104,24 +88,7 @@ export default async function AdminLayout({
       </main>
 
       {/* Bottom Navigation (Mobile Only) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 flex items-center justify-around h-20 px-2 pb-safe print:hidden">
-        <Link href={`/admin/${planId}/attendance`} className="flex flex-col items-center gap-1.5 px-3 py-2 rounded-2xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-all">
-          <CalendarDays className="h-6 w-6" />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Puantaj</span>
-        </Link>
-        <Link href={`/admin/${planId}/advances`} className="flex flex-col items-center gap-1.5 px-3 py-2 rounded-2xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-all">
-          <WalletCards className="h-6 w-6" />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Avanslar</span>
-        </Link>
-        <Link href={`/admin/${planId}`} className="flex flex-col items-center gap-1.5 px-3 py-2 rounded-2xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-all">
-          <LayoutDashboard className="h-6 w-6" />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Özet</span>
-        </Link>
-        <Link href={`/admin/${planId}/workers`} className="flex flex-col items-center gap-1.5 px-3 py-2 rounded-2xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-all">
-          <Users className="h-6 w-6" />
-          <span className="text-[10px] font-black uppercase tracking-tighter">İşçiler</span>
-        </Link>
-      </nav>
+      <BottomNav planId={planId} />
     </div>
   )
 }

@@ -3,13 +3,27 @@ import Link from 'next/link'
 import { createWorkPlan } from './actions/plans'
 import { Plus, Layout, ArrowRight, LogOut } from 'lucide-react'
 
+interface Membership {
+  id: string
+  plan_id: string
+  role: 'admin' | 'worker'
+  work_plans: { name: string }
+}
+
 export default async function HomePage() {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Kullanıcının sadece KENDİ üyeliklerini çek (Böylece hangi planlara erişimi olduğunu görür)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isWorker = profile?.role === 'worker'
+
   const { data: memberships } = await supabase
     .from('work_plan_members')
     .select('*, work_plans(name)')
@@ -37,24 +51,26 @@ export default async function HomePage() {
           </p>
         </div>
 
-        {/* Plan Oluşturma Kartı */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border-2 border-indigo-100 dark:border-indigo-900/30">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Plus className="text-indigo-600" />
-            Yeni İş Planı (Şantiye) Oluştur
-          </h2>
-          <form action={createWorkPlan} className="flex flex-col sm:flex-row gap-4">
-            <input 
-              name="name" 
-              required 
-              placeholder="Örn: Merkez Şantiyesi" 
-              className="flex-1 rounded-2xl border-gray-200 dark:bg-gray-700 dark:border-gray-600 p-4 text-lg focus:ring-4 focus:ring-indigo-500/10 transition-all"
-            />
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-2xl text-lg shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">
-              Hemen Oluştur
-            </button>
-          </form>
-        </div>
+        {/* Plan Oluşturma Kartı (Sadece işverenler/yöneticiler görebilir) */}
+        {!isWorker && (
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border-2 border-indigo-100 dark:border-indigo-900/30">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Plus className="text-indigo-600" />
+              Yeni İş Planı (Şantiye) Oluştur
+            </h2>
+            <form action={createWorkPlan} className="flex flex-col sm:flex-row gap-4">
+              <input 
+                name="name" 
+                required 
+                placeholder="Örn: Merkez Şantiyesi" 
+                className="flex-1 rounded-2xl border-gray-200 dark:bg-gray-700 dark:border-gray-600 p-4 text-lg focus:ring-4 focus:ring-indigo-500/10 transition-all"
+              />
+              <button className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-2xl text-lg shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">
+                Hemen Oluştur
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Mevcut Planlar Listesi */}
         <div className="space-y-4">
@@ -63,7 +79,7 @@ export default async function HomePage() {
           </h2>
           <div className="grid gap-6">
             {memberships && memberships.length > 0 ? (
-              memberships.map((membership: any) => (
+              (memberships as Membership[]).map((membership) => (
                 <Link 
                   key={membership.id} 
                   href={membership.role === 'admin' ? `/admin/${membership.plan_id}` : `/worker/${membership.plan_id}`}

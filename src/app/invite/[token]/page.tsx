@@ -41,15 +41,32 @@ export default async function InvitePage({
     .eq('token', token)
     .single()
 
-  if (!invitation || invitation.status === 'accepted' || !invitation.work_plans) {
+  if (!invitation || !invitation.work_plans) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
         <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-md w-full border border-red-100">
           <div className="text-red-500 mb-4 flex justify-center">
             <ShieldCheck size={64} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Geçersiz Davetiye</h1>
-          <p className="text-gray-600">Bu davet linki geçersiz, süresi dolmuş veya ilgili proje bulunamadı.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Geçersiz Davet Linki</h1>
+          <p className="text-gray-600">Bu davet linki geçersiz veya ilgili proje bulunamadı.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (invitation.status === 'accepted') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-md w-full border border-green-100">
+          <div className="text-green-500 mb-4 flex justify-center">
+            <ShieldCheck size={64} />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Hesap Zaten Aktif</h1>
+          <p className="text-gray-600 mb-6">Bu hesap daha önce aktifleştirilmiş. Kullanıcı adın ve şifrenle giriş yapabilirsin.</p>
+          <a href="/login" className="block bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 px-8 rounded-2xl text-lg transition-all">
+            Giriş Yap
+          </a>
         </div>
       </div>
     )
@@ -91,13 +108,13 @@ export default async function InvitePage({
           <div>
             <h1 className="text-3xl font-black text-gray-900 tracking-tight">Hoş Geldin, {invitation.worker_name}!</h1>
             <p className="text-gray-500 mt-2 text-lg">
-              <span className="font-bold text-indigo-600">{workPlanName}</span> ekibine katılmak üzeresin.
+              <span className="font-bold text-indigo-600">{workPlanName}</span> ekibindeki hesabını aktifleştir.
             </p>
           </div>
 
           <form action={acceptInvitation} className="space-y-6 text-left">
             <input type="hidden" name="token" value={token} />
-            
+
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-sm font-bold p-4 rounded-xl text-center">
                 {decodeURIComponent(error)}
@@ -106,37 +123,31 @@ export default async function InvitePage({
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider ml-1">Kullanıcı Adı Belirle</label>
-              <input 
-                name="username" 
-                type="text" 
-                required 
+              <input
+                name="username"
+                type="text"
+                required
                 placeholder="Örn: ahmet_usta"
                 pattern="^[a-zA-Z0-9_]+$"
                 title="Sadece İngilizce harfler, rakamlar ve alt çizgi kullanabilirsiniz."
                 className="w-full px-4 py-4 bg-white text-gray-900 border border-gray-300 rounded-xl text-xl placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider ml-1">Şifreni Belirle</label>
-              <input 
-                name="password" 
-                type="password" 
-                required 
+              <input
+                name="password"
+                type="password"
+                required
                 placeholder="En az 6 karakter"
                 className="w-full px-4 py-4 bg-white text-gray-900 border border-gray-300 rounded-xl text-xl placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
               />
             </div>
 
             <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-xl text-xl shadow-xl shadow-indigo-600/30 active:scale-95 transition-all">
-              HESABIMI OLUŞTUR VE KATIL
+              HESABIMI AKTİFLEŞTİR VE GİRİŞ YAP
             </button>
-
-            <div className="text-center pt-2">
-              <a href="/login" className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
-                Zaten hesabım var
-              </a>
-            </div>
           </form>
 
           <p className="text-xs text-gray-400 font-medium px-8">

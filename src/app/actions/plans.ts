@@ -3,30 +3,41 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+const MIN_NAME_LENGTH = 3
+const MAX_NAME_LENGTH = 50
+const MAX_PLANS_COUNT = 5
+
 export async function createWorkPlan(formData: FormData) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Oturum açmanız gerekiyor')
 
-  const rawName = formData.get('name') as string
-  const name = rawName.trim()
-  if (name.length < 3 || name.length > 50) {
-    throw new Error('Proje adı 3 ile 50 karakter arasında olmalıdır.')
+  const name = (formData.get('name') as string).trim()
+  if (name.length < MIN_NAME_LENGTH || name.length > MAX_NAME_LENGTH) {
+    throw new Error(`Proje adı ${MIN_NAME_LENGTH} ile ${MAX_NAME_LENGTH} karakter arasında olmalıdır.`)
   }
 
-  // Güvenlik Koruması: Bir kullanıcı en fazla 5 proje açabilir
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, id')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role === 'worker') {
+    throw new Error('Güvenlik: İşçi hesapları yeni proje oluşturamaz.')
+  }
+
   const { count, error: countError } = await supabase
     .from('work_plans')
     .select('*', { count: 'exact', head: true })
     .eq('created_by', user.id)
 
   if (countError) throw countError
-  if (count && count >= 5) {
-    throw new Error('Güvenlik: Bir hesap en fazla 5 proje oluşturabilir.')
+  if (count && count >= MAX_PLANS_COUNT) {
+    throw new Error(`Güvenlik: Bir hesap en fazla ${MAX_PLANS_COUNT} proje oluşturabilir.`)
   }
 
-  // 1. İş planını oluştur
   const { data: plan, error: planError } = await supabase
     .from('work_plans')
     .insert([{ name, created_by: user.id }])
@@ -35,35 +46,18 @@ export async function createWorkPlan(formData: FormData) {
 
   if (planError) throw planError
 
-  // 2. Profil kontrolü (Foreign Key hatasını önlemek için)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', user.id)
-    .single()
+  const emailPrefix = user.email?.split('@')[0] || 'admin'
 
+  // Profil yoksa oluştur (FK hatasını önlemek için — eski hesaplarda oluşabilir)
   if (!profile) {
-    // Eğer profil yoksa (eski kullanıcı veya hata durumu), oluştur
     await supabase
       .from('profiles')
-      .insert([{
-        id: user.id,
-        username: user.email?.split('@')[0] || 'admin',
-        full_name: user.email?.split('@')[0] || 'Yönetici'
-      }])
+      .insert([{ id: user.id, username: emailPrefix, full_name: emailPrefix }])
   }
 
-  // 3. Oluşturan kişiyi Admin olarak plana ekle
   const { error: memberError } = await supabase
     .from('work_plan_members')
-    .insert([
-      { 
-        plan_id: plan.id, 
-        user_id: user.id, 
-        role: 'admin',
-        full_name: user.email?.split('@')[0]
-      }
-    ])
+    .insert([{ plan_id: plan.id, user_id: user.id, role: 'admin', full_name: emailPrefix }])
 
   if (memberError) throw memberError
 
