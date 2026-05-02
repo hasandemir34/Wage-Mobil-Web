@@ -49,7 +49,7 @@ CREATE TABLE public.attendance (
   plan_id uuid references public.work_plans(id) on delete cascade not null,
   worker_id uuid references auth.users on delete cascade not null,
   date date not null,
-  status text check (status in ('present', 'absent', 'half_day')) not null,
+  status text check (status in ('present', 'absent')) not null,
   overtime_hours numeric default 0,
   multiplier numeric default 1.5,
   unique(plan_id, worker_id, date)

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { LogOut, Wallet } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default async function WorkerLayout({ 
   children,
@@ -43,7 +44,8 @@ export default async function WorkerLayout({
               <Wallet className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               <span className="text-xl font-bold text-gray-900 dark:text-white">Yevmiye Takip</span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <ThemeToggle />
               <Link href="/" className="text-[10px] sm:text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors uppercase">
                 Plan Değiştir
               </Link>

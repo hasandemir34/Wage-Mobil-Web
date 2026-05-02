@@ -10,38 +10,33 @@ export default async function WorkerDetailPage({
   const { planId, workerId } = await params
   const supabase = await createClient()
 
-  // 1. İşçi bilgilerini çek
-  const { data: worker } = await supabase
-    .from('work_plan_members')
-    .select('*, profiles(username)')
-    .eq('plan_id', planId)
-    .eq('user_id', workerId)
-    .single()
-
-  // 2. Yoklama geçmişini çek
-  const { data: attendance } = await supabase
-    .from('attendance')
-    .select('*')
-    .eq('plan_id', planId)
-    .eq('worker_id', workerId)
-    .order('date', { ascending: false })
-
-  // 3. Avans geçmişini çek
-  const { data: advances } = await supabase
-    .from('advances')
-    .select('*')
-    .eq('plan_id', planId)
-    .eq('worker_id', workerId)
-    .order('date', { ascending: false })
+  const [{ data: worker }, { data: attendance }, { data: advances }] = await Promise.all([
+    supabase
+      .from('work_plan_members')
+      .select('*, profiles(username)')
+      .eq('plan_id', planId)
+      .eq('user_id', workerId)
+      .single(),
+    supabase
+      .from('attendance')
+      .select('*')
+      .eq('plan_id', planId)
+      .eq('worker_id', workerId)
+      .order('date', { ascending: false }),
+    supabase
+      .from('advances')
+      .select('*')
+      .eq('plan_id', planId)
+      .eq('worker_id', workerId)
+      .order('date', { ascending: false }),
+  ])
 
   if (!worker) return <div>İşçi bulunamadı.</div>
 
   const baseWage = Number(worker.base_daily_wage || 0)
   
   const totalWages = attendance?.reduce((sum, r) => {
-    if (r.status === 'present') return sum + baseWage
-    if (r.status === 'half_day') return sum + (baseWage / 2)
-    return sum
+    return sum + (r.status === 'present' ? baseWage : 0)
   }, 0) || 0
 
   const totalConcrete = attendance?.reduce((sum, r) => sum + Number(r.concrete_bonus || 0), 0) || 0
@@ -82,21 +77,21 @@ export default async function WorkerDetailPage({
           </h3>
           <div className="space-y-3">
             {attendance?.map((record) => {
-              const dayWage = record.status === 'present' ? baseWage : record.status === 'half_day' ? baseWage / 2 : 0
+              const dayWage = record.status === 'present' ? baseWage : 0
               const concreteBonus = Number(record.concrete_bonus || 0)
               const totalDay = dayWage + concreteBonus
 
               return (
                 <div key={record.id} className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 flex items-center justify-between shadow-sm hover:shadow-md transition-all">
                   <div className="flex items-center gap-4">
-                    <div className={`w-3 h-3 rounded-full ${record.status === 'present' ? 'bg-green-500' : record.status === 'half_day' ? 'bg-orange-500' : 'bg-red-500'}`} />
+                    <div className={`w-3 h-3 rounded-full ${record.status === 'present' ? 'bg-green-500' : 'bg-red-500'}`} />
                     <div>
                       <p className="font-bold text-gray-900 dark:text-white">
                         {new Date(record.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'short' })}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                          {record.status === 'present' ? 'Tam Gün' : record.status === 'half_day' ? 'Yarım Gün' : 'Gelmedi'}
+                          {record.status === 'present' ? 'Tam Gün' : 'Gelmedi'}
                         </p>
                         {record.is_concrete && (
                           <span className="flex items-center gap-1 bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter">

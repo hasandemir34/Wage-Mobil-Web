@@ -42,7 +42,6 @@ export default async function PaymentsPage({ params }: { params: Promise<{ planI
 
     const earned = workerAttendance.reduce((sum, att) => {
       if (att.status === 'present') return sum + wage
-      if (att.status === 'half_day') return sum + (wage / 2)
       return sum
     }, 0)
 

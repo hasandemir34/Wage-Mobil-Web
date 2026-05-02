@@ -13,28 +13,26 @@ export default async function WorkerReportPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // İşçi ve Plan bilgilerini çek
-  const { data: worker } = await supabase
-    .from('work_plan_members')
-    .select('*, work_plans(name)')
-    .eq('plan_id', planId)
-    .eq('user_id', user.id)
-    .single()
-
-  // Puantaj ve Avansları çek
-  const { data: attendance } = await supabase
-    .from('attendance')
-    .select('*')
-    .eq('plan_id', planId)
-    .eq('worker_id', user.id)
-    .order('date', { ascending: true })
-
-  const { data: advances } = await supabase
-    .from('advances')
-    .select('*')
-    .eq('plan_id', planId)
-    .eq('worker_id', user.id)
-    .order('date', { ascending: true })
+  const [{ data: worker }, { data: attendance }, { data: advances }] = await Promise.all([
+    supabase
+      .from('work_plan_members')
+      .select('*, work_plans(name)')
+      .eq('plan_id', planId)
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('attendance')
+      .select('*')
+      .eq('plan_id', planId)
+      .eq('worker_id', user.id)
+      .order('date', { ascending: true }),
+    supabase
+      .from('advances')
+      .select('*')
+      .eq('plan_id', planId)
+      .eq('worker_id', user.id)
+      .order('date', { ascending: true }),
+  ])
 
   if (!worker) return null
 
@@ -46,15 +44,12 @@ export default async function WorkerReportPage({
   attendance?.forEach(r => {
     const monthKey = new Date(r.date).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
     if (!monthlyData[monthKey]) {
-      monthlyData[monthKey] = { full: 0, half: 0, concrete: 0, aks: 0, wageEarned: 0, concreteEarned: 0, aksEarned: 0, advances: 0 }
+      monthlyData[monthKey] = { full: 0, concrete: 0, aks: 0, wageEarned: 0, concreteEarned: 0, aksEarned: 0, advances: 0 }
     }
     
     if (r.status === 'present') {
       monthlyData[monthKey].full += 1
       monthlyData[monthKey].wageEarned += baseWage
-    } else if (r.status === 'half_day') {
-      monthlyData[monthKey].half += 1
-      monthlyData[monthKey].wageEarned += (baseWage / 2)
     }
 
     if (r.is_concrete) {
@@ -71,16 +66,13 @@ export default async function WorkerReportPage({
   advances?.forEach(a => {
     const monthKey = new Date(a.date).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
     if (!monthlyData[monthKey]) {
-      monthlyData[monthKey] = { full: 0, half: 0, concrete: 0, aks: 0, wageEarned: 0, concreteEarned: 0, aksEarned: 0, advances: 0 }
+      monthlyData[monthKey] = { full: 0, concrete: 0, aks: 0, wageEarned: 0, concreteEarned: 0, aksEarned: 0, advances: 0 }
     }
     monthlyData[monthKey].advances += Number(a.amount || 0)
   })
 
   const totalEarned = (attendance?.reduce((sum, r) => {
-    let e = 0
-    if (r.status === 'present') e = baseWage
-    else if (r.status === 'half_day') e = baseWage / 2
-    return sum + e + Number(r.concrete_bonus || 0)
+    return sum + (r.status === 'present' ? baseWage : 0) + Number(r.concrete_bonus || 0)
   }, 0) || 0)
   
   const totalAdvances = advances?.reduce((sum, a) => sum + Number(a.amount), 0) || 0
@@ -130,7 +122,7 @@ export default async function WorkerReportPage({
               <thead>
                 <tr className="bg-gray-900 text-white">
                   <th className="p-5 text-[10px] font-black uppercase tracking-widest">Dönem / Ay</th>
-                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-center">Puantaj (T/Y)</th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-center">Çalışılan Gün</th>
                   <th className="p-5 text-[10px] font-black uppercase tracking-widest text-center">Beton</th>
                   <th className="p-5 text-[10px] font-black uppercase tracking-widest text-right">Hakediş</th>
                   <th className="p-5 text-[10px] font-black uppercase tracking-widest text-right">Avans</th>
@@ -145,9 +137,7 @@ export default async function WorkerReportPage({
                     <tr key={month} className="text-gray-700 font-bold hover:bg-gray-50 transition-colors">
                       <td className="p-5 text-sm uppercase">{month}</td>
                       <td className="p-5 text-center text-sm">
-                        <span className="text-green-600">{data.full} Tam</span>
-                        <span className="text-gray-300 mx-2">/</span>
-                        <span className="text-orange-600">{data.half} Yarım</span>
+                        <span className="text-green-600">{data.full} Gün</span>
                       </td>
                       <td className="p-5 text-center">
                         <div className="flex flex-col items-center justify-center gap-1 text-[10px]">

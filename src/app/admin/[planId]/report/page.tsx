@@ -13,16 +13,6 @@ export default async function ReportPage({
   const { range } = await searchParams
   const supabase = await createClient()
 
-  // Proje bilgilerini çek
-  const { data: plan } = await supabase.from('work_plans').select('*').eq('id', planId).single()
-  
-  // İşçileri çek
-  const { data: workers } = await supabase
-    .from('work_plan_members')
-    .select('*, profiles(username)')
-    .eq('plan_id', planId)
-    .eq('role', 'worker')
-
   // Tarih aralığını belirle (Türkiye Saati ile)
   let startDate = new Date()
   if (range === '1') startDate.setMonth(startDate.getMonth() - 1)
@@ -31,21 +21,26 @@ export default async function ReportPage({
 
   const startDateStr = startDate.toISOString().split('T')[0]
 
-  // Puantajları çek
-  const { data: attendance } = await supabase
-    .from('attendance')
-    .select('*')
-    .eq('plan_id', planId)
-    .gte('date', startDateStr)
-    .order('date', { ascending: true })
-
-  // Avansları çek
-  const { data: advances } = await supabase
-    .from('advances')
-    .select('*')
-    .eq('plan_id', planId)
-    .gte('date', startDateStr)
-    .order('date', { ascending: true })
+  const [{ data: plan }, { data: workers }, { data: attendance }, { data: advances }] = await Promise.all([
+    supabase.from('work_plans').select('*').eq('id', planId).single(),
+    supabase
+      .from('work_plan_members')
+      .select('*, profiles(username)')
+      .eq('plan_id', planId)
+      .eq('role', 'worker'),
+    supabase
+      .from('attendance')
+      .select('*')
+      .eq('plan_id', planId)
+      .gte('date', startDateStr)
+      .order('date', { ascending: true }),
+    supabase
+      .from('advances')
+      .select('*')
+      .eq('plan_id', planId)
+      .gte('date', startDateStr)
+      .order('date', { ascending: true }),
+  ])
 
   return (
     <div className="bg-white min-h-screen p-4 sm:p-8 print:p-0">
@@ -91,13 +86,12 @@ export default async function ReportPage({
                   const wAdv = advances?.filter(a => a.worker_id === worker.user_id) || []
                   
                   const fullDays = wAtt.filter(a => a.status === 'present').length
-                  const halfDays = wAtt.filter(a => a.status === 'half_day').length
                   const baseWage = Number(worker.base_daily_wage || 0)
 
                   const concreteCount = wAtt.filter(a => a.is_concrete).length
                   const aksCount = wAtt.filter(a => a.is_aks).length
-                  
-                  const earnedWages = (fullDays * baseWage) + (halfDays * baseWage / 2)
+
+                  const earnedWages = fullDays * baseWage
                   const earnedConcrete = wAtt.reduce((sum, a) => sum + Number(a.concrete_bonus || 0), 0)
                   const earnedAks = wAtt.reduce((sum, a) => sum + Number(a.aks_bonus || 0), 0)
                   const totalEarned = earnedWages + earnedConcrete + earnedAks
@@ -107,7 +101,7 @@ export default async function ReportPage({
                   return (
                     <tr key={worker.user_id} className="font-bold text-gray-800 hover:bg-gray-50 transition-colors">
                       <td className="p-4 text-lg border border-gray-300 bg-white">{worker.full_name}</td>
-                      <td className="p-4 text-center border border-gray-300 bg-white">{fullDays + halfDays}</td>
+                      <td className="p-4 text-center border border-gray-300 bg-white">{fullDays}</td>
                       <td className="p-4 text-center border border-gray-300 bg-white">
                         <div className="flex flex-col text-xs">
                           <span className="text-orange-600">{concreteCount} Kez</span>

@@ -76,8 +76,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 type="password"
                 autoComplete="current-password"
                 required
+                minLength={6}
                 className="block w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                placeholder="••••••••"
+                placeholder="En az 6 karakter giriniz"
               />
             </div>
           </div>

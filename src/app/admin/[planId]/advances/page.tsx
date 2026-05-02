@@ -5,17 +5,18 @@ export default async function AdvancesPage({ params }: { params: Promise<{ planI
   const { planId } = await params
   const supabase = await createClient()
 
-  const { data: workers } = await supabase
-    .from('work_plan_members')
-    .select('*, profiles(username)')
-    .eq('plan_id', planId)
-    .eq('role', 'worker')
-
-  const { data: advances } = await supabase
-    .from('advances')
-    .select('*')
-    .eq('plan_id', planId)
-    .order('date', { ascending: false })
+  const [{ data: workers }, { data: advances }] = await Promise.all([
+    supabase
+      .from('work_plan_members')
+      .select('*, profiles(username)')
+      .eq('plan_id', planId)
+      .eq('role', 'worker'),
+    supabase
+      .from('advances')
+      .select('*')
+      .eq('plan_id', planId)
+      .order('date', { ascending: false }),
+  ])
 
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
 

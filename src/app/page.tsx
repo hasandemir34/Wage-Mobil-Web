@@ -41,7 +41,7 @@ export default async function HomePage() {
             Yevmiye Takip
           </h1>
           <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-medium">
-            Devam etmek için bir iş planı seçin veya yeni bir tane oluşturun.
+            {isWorker ? 'Devam etmek için bir iş planı seçin.' : 'Devam etmek için bir iş planı seçin veya yeni bir tane oluşturun.'}
           </p>
         </div>
 
@@ -104,7 +104,7 @@ export default async function HomePage() {
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Henüz bir iş planınız bulunmuyor.</h3>
                 <p className="text-gray-500 font-medium max-w-xs mx-auto">
-                  Üstteki formdan yeni bir tane oluşturun veya yöneticinizden davet bekleyin.
+                  {isWorker ? 'Yöneticinizden davet bekleyin.' : 'Üstteki formdan yeni bir tane oluşturun veya yöneticinizden davet bekleyin.'}
                 </p>
               </div>
             )}

@@ -30,7 +30,6 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
     const wage = workerWageMap.get(att.worker_id)
     if (wage !== undefined) {
       if (att.status === 'present') totalEarned += wage
-      else if (att.status === 'half_day') totalEarned += (wage / 2)
       
       totalEarned += Number(att.concrete_bonus || 0)
       totalEarned += Number(att.aks_bonus || 0)

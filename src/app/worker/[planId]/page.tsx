@@ -50,15 +50,10 @@ export default function WorkerDashboard({ params }: { params: any }) {
   const { membership, attendance, advances } = data
   const baseWage = Number(membership.base_daily_wage || 0)
   
-  const fullDays = attendance?.filter((a: any) => a.status === 'present').length || 0
-  const halfDays = attendance?.filter((a: any) => a.status === 'half_day').length || 0
-  const totalWorkedDays = fullDays + halfDays
+  const totalWorkedDays = attendance?.filter((a: any) => a.status === 'present').length || 0
 
   const totalWages = attendance?.reduce((sum: number, record: any) => {
-    let earned = 0
-    if (record.status === 'present') earned = baseWage
-    else if (record.status === 'half_day') earned = baseWage / 2
-    return sum + earned
+    return sum + (record.status === 'present' ? baseWage : 0)
   }, 0) || 0
 
   const totalConcrete = attendance?.reduce((sum: number, record: any) => {
@@ -112,6 +107,10 @@ export default function WorkerDashboard({ params }: { params: any }) {
           <div className="flex justify-between items-center text-xs font-black">
             <span className="uppercase tracking-widest text-green-200">Ek Mesai (Beton+Aks):</span>
             <span className="bg-white/20 px-2 py-0.5 rounded-md">{formatCurrency(totalConcrete + totalAks)}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs font-black text-red-200">
+            <span className="uppercase tracking-widest">Alınan Avans:</span>
+            <span className="bg-red-500/30 px-2 py-0.5 rounded-md">-{formatCurrency(totalAdvances)}</span>
           </div>
           <div className="mt-1 pt-2 border-t border-white/10 flex justify-between items-center text-[10px] font-bold opacity-60 uppercase tracking-widest">
             <span>Toplam Hak Ediş:</span>
@@ -168,8 +167,8 @@ export default function WorkerDashboard({ params }: { params: any }) {
           Son Avanslar
         </h3>
         <div className="space-y-3">
-          {advances?.slice(0, 5).map((adv: any) => (
-            <div key={adv.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+          {advances?.slice(0, 5).map((adv: any, i: number) => (
+            <div key={adv.id ?? i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
               <div>
                 <p className="text-sm font-black text-gray-900">
                   {new Date(adv.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}

@@ -4,6 +4,7 @@ import { LayoutDashboard, LogOut } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { SidebarNav, BottomNav } from './NavLinks'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default async function AdminLayout({ 
   children, 
@@ -50,6 +51,10 @@ export default async function AdminLayout({
           <SidebarNav planId={planId} />
         </div>
         <div className="flex flex-col gap-2 border-t border-gray-200 p-4 dark:border-gray-700">
+          <div className="flex items-center justify-between px-3 py-2">
+            <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Tema</span>
+            <ThemeToggle />
+          </div>
           <Link href="/" className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors font-bold">
             <LayoutDashboard className="h-5 w-5" />
             <span>Plan Değiştir</span>
@@ -71,7 +76,8 @@ export default async function AdminLayout({
             {planName}
           </h1>
           <div className="flex items-center gap-2">
-            <Link href="/" className="p-2 text-gray-500 hover:bg-gray-100 rounded-xl">
+            <ThemeToggle />
+            <Link href="/" className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">
               <LayoutDashboard size={20} />
             </Link>
             <form action="/auth/signout" method="post">

@@ -127,15 +127,21 @@ export default function AttendanceManager({
 
       {/* İşçi Listesi */}
       <div className="grid gap-4">
-        {workers.map((worker) => (
-          <div key={worker.user_id} className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-md transition-all">
+        {workers.map((worker) => {
+          const isAbsent = attendance[worker.user_id] === 'absent'
+          return (
+          <div key={worker.user_id} className={`p-6 rounded-3xl border shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-md transition-all ${
+            isAbsent
+              ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800'
+              : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'
+          }`}>
             <div className="flex items-center gap-3 self-start sm:self-center">
-              <div className="bg-gray-100 dark:bg-gray-700 p-3 sm:p-4 rounded-2xl text-gray-400 shrink-0">
+              <div className={`p-3 sm:p-4 rounded-2xl shrink-0 ${isAbsent ? 'bg-red-100 dark:bg-red-900/40 text-red-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400'}`}>
                 <Users className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-base sm:text-xl font-black text-gray-900 dark:text-white truncate">
-                  {worker.full_name} 
+                <h4 className={`text-base sm:text-xl font-black truncate ${isAbsent ? 'text-red-700 dark:text-red-300' : 'text-gray-900 dark:text-white'}`}>
+                  {worker.full_name}
                 </h4>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                   <span className="text-[10px] sm:text-sm font-bold text-gray-400 uppercase">@{(worker as any).profiles?.username}</span>
@@ -145,20 +151,18 @@ export default function AttendanceManager({
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {/* 3-Way Toggle */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               {[
-                { id: 'present', label: 'TAM GÜN', color: 'bg-green-500', activeColor: 'bg-green-600 text-white border-green-600' },
-                { id: 'half_day', label: 'YARIM GÜN', color: 'bg-orange-400', activeColor: 'bg-orange-500 text-white border-orange-500' },
-                { id: 'absent', label: 'GELMEDİ', color: 'bg-gray-400', activeColor: 'bg-gray-600 text-white border-gray-600' }
+                { id: 'present', label: 'TAM GÜN', activeColor: 'bg-green-600 text-white border-green-600' },
+                { id: 'absent', label: 'GELMEDİ', activeColor: 'bg-red-600 text-white border-red-600' },
               ].map((status) => (
                 <button
                   key={status.id}
                   onClick={() => handleStatusChange(worker.user_id, status.id)}
                   className={`flex-1 sm:flex-none px-4 py-3 rounded-xl text-xs font-black transition-all border-2 ${
-                    attendance[worker.user_id] === status.id 
-                    ? status.activeColor
-                    : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
+                    attendance[worker.user_id] === status.id
+                      ? status.activeColor
+                      : 'bg-white dark:bg-gray-700 text-gray-400 border-gray-100 dark:border-gray-600 hover:border-gray-300'
                   }`}
                 >
                   {status.label}
@@ -177,7 +181,8 @@ export default function AttendanceManager({
               </div>
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
