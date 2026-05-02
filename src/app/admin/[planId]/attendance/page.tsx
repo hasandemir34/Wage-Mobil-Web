@@ -40,12 +40,33 @@ export default async function AttendancePage({
     .eq('plan_id', planId)
     .eq('date', selectedDate)
 
+  // En son kaydedilen bonusları çek (varsayılan olarak kullanmak için)
+  const { data: lastConcrete } = await supabase
+    .from('attendance')
+    .select('concrete_bonus')
+    .eq('plan_id', planId)
+    .eq('is_concrete', true)
+    .order('date', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const { data: lastAks } = await supabase
+    .from('attendance')
+    .select('aks_bonus')
+    .eq('plan_id', planId)
+    .eq('is_aks', true)
+    .order('date', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const defaultConcreteBonus = lastConcrete?.concrete_bonus || 500
+  const defaultAksBonus = lastAks?.aks_bonus || 300
+
   const concreteSelected = todayAttendance?.filter(a => a.is_concrete).map(a => a.worker_id) || []
   const aksSelected = todayAttendance?.filter(a => a.is_aks).map(a => a.worker_id) || []
   
-  const concreteBonus = todayAttendance?.find(a => a.is_concrete)?.concrete_bonus || 500
-  const aksBonus = todayAttendance?.find(a => a.is_aks)?.aks_bonus || 300
-
+  const concreteBonus = todayAttendance?.find(a => a.is_concrete)?.concrete_bonus || defaultConcreteBonus
+  const aksBonus = todayAttendance?.find(a => a.is_aks)?.aks_bonus || defaultAksBonus
   return (
     <div className="max-w-4xl mx-auto space-y-10 pb-20 px-4">
       <div className="flex flex-col gap-2">

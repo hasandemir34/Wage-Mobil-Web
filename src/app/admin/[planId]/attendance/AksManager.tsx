@@ -23,7 +23,7 @@ export default function AksManager({
   initialBonus?: number
 }) {
   const [selectedWorkers, setSelectedWorkers] = useState<string[]>(initialSelected)
-  const [bonus, setBonus] = useState(initialBonus)
+  const [bonus, setBonus] = useState<number | ''>(initialBonus)
   const [loading, setLoading] = useState(false)
 
   const toggleWorker = (id: string) => {
@@ -35,7 +35,7 @@ export default function AksManager({
   const handleSave = async () => {
     setLoading(true)
     try {
-      await saveAksAttendance(planId, selectedWorkers, bonus, date)
+      await saveAksAttendance(planId, selectedWorkers, Number(bonus) || 0, date)
     } finally {
       setLoading(false)
     }
@@ -70,7 +70,7 @@ export default function AksManager({
           <input 
             type="number" 
             value={bonus}
-            onChange={(e) => setBonus(Number(e.target.value))}
+            onChange={(e) => setBonus(e.target.value === '' ? '' : Number(e.target.value))}
             className={`w-20 min-h-[44px] px-3 py-1 rounded-lg text-sm font-black outline-none transition-all
               ${isActive ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'}
             `}

@@ -17,6 +17,25 @@ export async function saveConcreteAttendance(
   if (date > turkeyToday) {
     throw new Error('Gelecek bir tarih için kayıt girişi yapılamaz.')
   }
+  
+  if (bonus < 0 || bonus > 1000000) {
+    throw new Error('Geçersiz bonus tutarı.')
+  }
+
+  // Yetki Kontrolü
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Oturum süreniz dolmuş.')
+
+  const { data: membership } = await supabase
+    .from('work_plan_members')
+    .select('role')
+    .eq('plan_id', planId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (membership?.role !== 'admin') {
+    throw new Error('Güvenlik ihlali: Bu işlem için yetkiniz yok.')
+  }
 
   // Önce o günkü mevcut beton kayıtlarını temizle
   await supabase

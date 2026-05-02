@@ -54,8 +54,32 @@ export async function updateWorker(formData: FormData) {
   const supabase = await createClient()
   const plan_id = formData.get('plan_id') as string
   const user_id = formData.get('user_id') as string
-  const full_name = formData.get('full_name') as string
+  const rawFullName = formData.get('full_name') as string
   const base_daily_wage = parseFloat(formData.get('base_daily_wage') as string) || 0
+
+  // 1. Yetki Kontrolü (Güvenlik)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Oturum süreniz dolmuş.')
+
+  const { data: membership } = await supabase
+    .from('work_plan_members')
+    .select('role')
+    .eq('plan_id', plan_id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (membership?.role !== 'admin') {
+    throw new Error('Güvenlik ihlali: Bu işlemi yapmak için yetkiniz yok.')
+  }
+
+  // 2. Girdi Doğrulama
+  const full_name = rawFullName.trim()
+  if (full_name.length < 2 || full_name.length > 50) {
+    throw new Error('İsim 2 ile 50 karakter arasında olmalıdır.')
+  }
+  if (base_daily_wage < 0 || base_daily_wage > 1000000) {
+    throw new Error('Geçersiz yevmiye tutarı.')
+  }
 
   const { error } = await supabase
     .from('work_plan_members')

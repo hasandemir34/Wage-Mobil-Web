@@ -24,6 +24,25 @@ export async function saveAttendance(formData: FormData) {
   const overtime_hours = parseFloat(formData.get('overtime_hours') as string) || 0
   const multiplier = parseFloat(formData.get('multiplier') as string) || 1.5
 
+  if (overtime_hours < 0 || overtime_hours > 24) {
+    throw new Error('Geçersiz mesai saati.')
+  }
+
+  // Yetki Kontrolü
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Oturum süreniz dolmuş.')
+
+  const { data: membership } = await supabase
+    .from('work_plan_members')
+    .select('role')
+    .eq('plan_id', plan_id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (membership?.role !== 'admin') {
+    throw new Error('Güvenlik ihlali: Bu proje için yetkiniz yok.')
+  }
+
   // Upsert logic: Eğer aynı gün için kayıt varsa güncelle, yoksa ekle
   const { error } = await supabase
     .from('attendance')

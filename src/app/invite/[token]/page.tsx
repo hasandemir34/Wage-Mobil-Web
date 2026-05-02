@@ -3,6 +3,8 @@ import { createClient } from '@/utils/supabase/server'
 import { acceptInvitation } from '../../actions/invitations'
 import { UserPlus, ShieldCheck } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function InvitePage({ 
   params,
   searchParams
@@ -12,6 +14,21 @@ export default async function InvitePage({
 }) {
   const { token } = await params
   const { error } = await searchParams
+  
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-md w-full border border-red-100">
+          <div className="text-red-500 mb-4 flex justify-center">
+            <ShieldCheck size={64} />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Sistem Hatası</h1>
+          <p className="text-gray-600">Sistem ayarları eksik (SUPABASE_SERVICE_ROLE_KEY bulunamadı). Lütfen site yöneticisi ile iletişime geçin.</p>
+        </div>
+      </div>
+    )
+  }
+
   const adminClient = createAdminClient()
   
   // Mevcut oturumu kontrol et (Admin veya başka bir kullanıcı açıksa)
