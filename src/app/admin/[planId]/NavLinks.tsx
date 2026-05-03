@@ -30,7 +30,7 @@ export function SidebarNav({ planId }: { planId: string }) {
       </Link>
       <Link href={`/admin/${planId}/advances`} className={linkClass(isActive(`/admin/${planId}/advances`))}>
         <WalletCards className={iconClass(isActive(`/admin/${planId}/advances`))} />
-        <span>Avanslar</span>
+        <span>Avans/Ödeme</span>
       </Link>
       <Link href={`/admin/${planId}`} className={linkClass(isActive(`/admin/${planId}`, true))}>
         <LayoutDashboard className={iconClass(isActive(`/admin/${planId}`, true))} />
@@ -70,7 +70,7 @@ export function BottomNav({ planId }: { planId: string }) {
       </Link>
       <Link href={`/admin/${planId}/advances`} className={linkClass(isActive(`/admin/${planId}/advances`))}>
         <WalletCards className="h-6 w-6" />
-        <span className={spanClass(isActive(`/admin/${planId}/advances`))}>Avanslar</span>
+        <span className={spanClass(isActive(`/admin/${planId}/advances`))}>Avans/Ödeme</span>
       </Link>
       <Link href={`/admin/${planId}`} className={linkClass(isActive(`/admin/${planId}`, true))}>
         <LayoutDashboard className="h-6 w-6" />

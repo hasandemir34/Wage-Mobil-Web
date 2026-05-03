@@ -13,17 +13,18 @@ export default function AdvanceForm({ planId, workers, today }: { planId: string
     setLoading(true)
     setError(null)
 
-    const formData = new FormData(e.currentTarget)
-    
+    const form = e.currentTarget
+    const formData = new FormData(form)
+
     try {
       const selectedDate = formData.get('date') as string
-      if (selectedDate > today) {
+      const clientToday = new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      if (selectedDate > clientToday) {
         throw new Error('Gelecek bir tarih için avans girişi yapılamaz.')
       }
 
       await addAdvance(formData)
-      // Formu temizle
-      ;(e.target as HTMLFormElement).reset()
+      form.reset()
     } catch (err: any) {
       setError(err.message || 'Bir hata oluştu.')
       setTimeout(() => setError(null), 5000)
@@ -72,7 +73,7 @@ export default function AdvanceForm({ planId, workers, today }: { planId: string
           
           <div className="md:col-span-3 space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Miktar (₺)</label>
-            <input name="amount" type="number" required placeholder="0.00" className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-transparent rounded-2xl placeholder:text-gray-400 focus:border-red-600 outline-none transition-all text-lg font-bold shadow-sm" />
+            <input name="amount" type="number" required placeholder="0.00" className="w-full min-w-0 px-4 py-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-transparent rounded-2xl placeholder:text-gray-400 focus:border-red-600 outline-none transition-all text-lg font-bold shadow-sm" />
           </div>
 
           <div className="md:col-span-4 space-y-2">

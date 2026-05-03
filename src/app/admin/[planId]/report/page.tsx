@@ -2,15 +2,16 @@ import { createClient } from '@/utils/supabase/server'
 import { HardHat, Banknote, Ruler } from 'lucide-react'
 import ReportHeader from './ReportHeader'
 
-export default async function ReportPage({ 
+export default async function ReportPage({
   params,
-  searchParams 
-}: { 
+  searchParams
+}: {
   params: Promise<{ planId: string }>,
-  searchParams: Promise<{ range?: string }>
+  searchParams: Promise<{ range?: string; workers?: string }>
 }) {
   const { planId } = await params
-  const { range } = await searchParams
+  const { range, workers: workersParam } = await searchParams
+  const selectedWorkerIds = workersParam ? workersParam.split(',').filter(Boolean) : null
   const supabase = await createClient()
 
   // Tarih aralığını belirle (Türkiye Saati ile)
@@ -21,13 +22,15 @@ export default async function ReportPage({
 
   const startDateStr = startDate.toISOString().split('T')[0]
 
+  const baseWorkersQuery = supabase
+    .from('work_plan_members')
+    .select('*, profiles(username)')
+    .eq('plan_id', planId)
+  const workersQuery = selectedWorkerIds ? baseWorkersQuery.in('user_id', selectedWorkerIds) : baseWorkersQuery
+
   const [{ data: plan }, { data: workers }, { data: attendance }, { data: advances }] = await Promise.all([
     supabase.from('work_plans').select('*').eq('id', planId).single(),
-    supabase
-      .from('work_plan_members')
-      .select('*, profiles(username)')
-      .eq('plan_id', planId)
-      .eq('role', 'worker'),
+    workersQuery,
     supabase
       .from('attendance')
       .select('*')
@@ -59,6 +62,7 @@ export default async function ReportPage({
             <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Rapor Tarihi</p>
             <p className="text-lg font-bold">{new Date().toLocaleDateString('tr-TR')}</p>
             <p className="text-[10px] font-black text-gray-400 uppercase mt-1">Aralık: {range === 'all' ? 'Tüm Geçmiş' : `Son ${range} Ay`}</p>
+            {selectedWorkerIds && <p className="text-[10px] font-black text-gray-400 uppercase mt-0.5">{selectedWorkerIds.length} İşçi Seçili</p>}
           </div>
         </div>
 

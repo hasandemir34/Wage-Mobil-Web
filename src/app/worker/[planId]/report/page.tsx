@@ -72,7 +72,7 @@ export default async function WorkerReportPage({
   })
 
   const totalEarned = (attendance?.reduce((sum, r) => {
-    return sum + (r.status === 'present' ? baseWage : 0) + Number(r.concrete_bonus || 0)
+    return sum + (r.status === 'present' ? baseWage : 0) + Number(r.concrete_bonus || 0) + Number(r.aks_bonus || 0)
   }, 0) || 0)
   
   const totalAdvances = advances?.reduce((sum, a) => sum + Number(a.amount), 0) || 0

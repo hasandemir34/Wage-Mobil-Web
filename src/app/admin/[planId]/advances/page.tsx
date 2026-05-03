@@ -1,65 +1,67 @@
 import { createClient } from '@/utils/supabase/server'
 import AdvanceForm from './AdvanceForm'
+import PaymentForm from '../payments/PaymentForm'
+import RecentTransactions from './RecentTransactions'
 
 export default async function AdvancesPage({ params }: { params: Promise<{ planId: string }> }) {
   const { planId } = await params
   const supabase = await createClient()
 
-  const [{ data: workers }, { data: advances }] = await Promise.all([
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [{ data: allMembers }, { data: advances }, { data: allAttendance }] = await Promise.all([
     supabase
       .from('work_plan_members')
       .select('*, profiles(username)')
-      .eq('plan_id', planId)
-      .eq('role', 'worker'),
+      .eq('plan_id', planId),
     supabase
       .from('advances')
       .select('*')
       .eq('plan_id', planId)
       .order('date', { ascending: false }),
+    supabase
+      .from('attendance')
+      .select('worker_id, status, concrete_bonus, aks_bonus')
+      .eq('plan_id', planId),
   ])
 
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
+  const today = new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+  const members = (allMembers || []).map(m =>
+    m.user_id === user?.id ? { ...m, full_name: 'Ben' } : m
+  )
+
+  const workersWithBalance = members.map(member => {
+    const wage = Number(member.base_daily_wage || 0)
+    const earned = (allAttendance || [])
+      .filter(a => a.worker_id === member.user_id)
+      .reduce((sum, a) => a.status === 'present' ? sum + wage + Number((a as any).concrete_bonus || 0) + Number((a as any).aks_bonus || 0) : sum, 0)
+    const advanced = (advances || [])
+      .filter(a => a.worker_id === member.user_id)
+      .reduce((sum, a) => sum + Number(a.amount), 0)
+    return {
+      id: member.user_id,
+      name: member.full_name,
+      username: (member as any).profiles?.username ?? '',
+      earned,
+      advanced,
+      balance: earned - advanced,
+    }
+  })
 
   return (
     <div className="space-y-12 pb-24">
       <div className="flex flex-col gap-2">
-        <h2 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white uppercase">Avans Kayıtları</h2>
-        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium italic">İşçilere verilen nakit ödemeleri ve ara ödemeleri kaydedin.</p>
+        <h2 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white uppercase">Avans / Ödeme Kayıtları</h2>
+        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium italic">İşçilere verilen avansları ve yapılan ödemeleri kaydedin.</p>
       </div>
 
-      <AdvanceForm planId={planId} workers={workers || []} today={today} />
-
-      <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
-        <h3 className="p-8 pb-4 text-xl font-bold text-gray-400 uppercase tracking-widest">Son İşlemler</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
-              <tr>
-                <th className="px-8 py-6 text-sm font-black text-gray-400 uppercase tracking-wider">Tarih</th>
-                <th className="px-8 py-6 text-sm font-black text-gray-400 uppercase tracking-wider">İşçi</th>
-                <th className="px-8 py-6 text-sm font-black text-gray-400 uppercase tracking-wider text-right">Miktar</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {advances?.map(adv => {
-                const worker = workers?.find(w => w.user_id === adv.worker_id)
-                return (
-                  <tr key={adv.id} className="hover:bg-red-50/30 dark:hover:bg-red-900/10 transition-all">
-                    <td className="px-8 py-6 text-lg font-bold text-gray-500">{new Date(adv.date).toLocaleDateString('tr-TR')}</td>
-                    <td className="px-8 py-6 text-xl font-bold text-gray-900 dark:text-white">
-                      {worker?.full_name || 'Bilinmeyen İşçi'} 
-                      <span className="block text-xs text-gray-400 font-semibold">@{(worker as any)?.profiles?.username}</span>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <span className="text-2xl font-black text-red-600 dark:text-red-400">₺{adv.amount.toLocaleString('tr-TR')}</span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+      <div className="grid grid-cols-1 gap-8">
+        <AdvanceForm planId={planId} workers={members} today={today} />
+        <PaymentForm planId={planId} workers={workersWithBalance} today={today} />
       </div>
+
+      <RecentTransactions advances={advances || []} members={members} />
     </div>
   )
 }

@@ -8,6 +8,7 @@ interface Worker {
   user_id: string
   full_name: string
   base_daily_wage: number
+  role?: string
 }
 
 interface AttendanceRecord {
@@ -15,16 +16,18 @@ interface AttendanceRecord {
   status: string
 }
 
-export default function AttendanceManager({ 
-  workers, 
-  initialAttendance, 
-  planId, 
-  currentDate 
-}: { 
-  workers: Worker[], 
-  initialAttendance: AttendanceRecord[], 
+export default function AttendanceManager({
+  workers,
+  initialAttendance,
+  planId,
+  currentDate,
+  currentUserId
+}: {
+  workers: Worker[],
+  initialAttendance: AttendanceRecord[],
   planId: string,
-  currentDate: string 
+  currentDate: string,
+  currentUserId?: string
 }) {
   const [attendance, setAttendance] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {}
@@ -34,6 +37,16 @@ export default function AttendanceManager({
     })
     return initial
   })
+
+  useEffect(() => {
+    const initial: Record<string, string> = {}
+    workers.forEach(w => {
+      const record = initialAttendance.find(a => a.worker_id === w.user_id)
+      initial[w.user_id] = record?.status || 'absent'
+    })
+    setAttendance(initial)
+  }, [currentDate, initialAttendance])
+
   const [saving, setSaving] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -107,12 +120,9 @@ export default function AttendanceManager({
           </div>
           <div>
             <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Seçili Tarih</p>
-            <input 
-              type="date" 
-              value={currentDate}
-              onChange={(e) => window.location.href = `?date=${e.target.value}`}
-              className="text-xl font-black text-gray-900 dark:text-white bg-transparent outline-none cursor-pointer"
-            />
+            <p className="text-xl font-black text-gray-900 dark:text-white">
+              {new Date(currentDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
           </div>
         </div>
 
@@ -141,7 +151,7 @@ export default function AttendanceManager({
               </div>
               <div className="min-w-0">
                 <h4 className={`text-base sm:text-xl font-black truncate ${isAbsent ? 'text-red-700 dark:text-red-300' : 'text-gray-900 dark:text-white'}`}>
-                  {worker.full_name}
+                  {worker.user_id === currentUserId ? 'Ben' : worker.full_name}
                 </h4>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                   <span className="text-[10px] sm:text-sm font-bold text-gray-400 uppercase">@{(worker as any).profiles?.username}</span>

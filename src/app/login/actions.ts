@@ -44,6 +44,10 @@ export async function signup(formData: FormData) {
     redirect(`/login?message=${encodeURIComponent('Kullanıcı adı sadece İngilizce küçük harf, rakam ve alt çizgi içerebilir.')}`)
   }
 
+  if (username === 'ben') {
+    redirect(`/login?message=${encodeURIComponent('Bu kullanıcı adı kullanılamaz. Lütfen farklı bir ad seçin.')}`)
+  }
+
   // 1. Kullanıcı adı zaten var mı kontrol et
   const { data: existingUser } = await supabase
     .from('profiles')

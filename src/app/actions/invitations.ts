@@ -25,6 +25,9 @@ export async function createInvitation(formData: FormData) {
   if (!worker_name || worker_name.length < MIN_WORKER_NAME_LENGTH || worker_name.length > MAX_WORKER_NAME_LENGTH) {
     throw new Error(`İşçi adı ${MIN_WORKER_NAME_LENGTH} ile ${MAX_WORKER_NAME_LENGTH} karakter arasında olmalıdır.`)
   }
+  if (worker_name.toLowerCase() === 'ben') {
+    throw new Error('Bu isim kullanılamaz. Lütfen farklı bir ad girin.')
+  }
   if (isNaN(base_daily_wage) || base_daily_wage < 0 || base_daily_wage > 1000000) {
     throw new Error('Geçersiz yevmiye ücreti.')
   }
@@ -68,6 +71,16 @@ export async function createInvitation(formData: FormData) {
 
   if (memberError) throw new Error(memberError.message)
 
+  // İşçi eklenince geriye dönük 30 gün absent kaydet
+  const now = new Date()
+  await adminClient.from('attendance').insert(
+    Array.from({ length: 30 }, (_, i) => {
+      const d = new Date(now)
+      d.setDate(d.getDate() - (i + 1))
+      return { plan_id, worker_id: authUser.user.id, date: d.toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' }), status: 'absent', overtime_hours: 0, multiplier: 1.5 }
+    })
+  )
+
   const { data: invitation, error } = await adminClient
     .from('invitations')
     .insert([{ plan_id, worker_name, base_daily_wage, user_id: authUser.user.id }])
@@ -100,6 +113,9 @@ export async function acceptInvitation(formData: FormData) {
   }
   if (!/^[a-z0-9_]+$/.test(username)) {
     redirect(`/invite/${token}?error=${encodeURIComponent('Kullanıcı adı sadece İngilizce harf, rakam ve alt çizgi içerebilir.')}`)
+  }
+  if (username === 'ben') {
+    redirect(`/invite/${token}?error=${encodeURIComponent('Bu kullanıcı adı kullanılamaz. Lütfen farklı bir ad seçin.')}`)
   }
   if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
     redirect(`/invite/${token}?error=${encodeURIComponent(`Şifre ${MIN_PASSWORD_LENGTH} ile ${MAX_PASSWORD_LENGTH} karakter arasında olmalıdır.`)}`)

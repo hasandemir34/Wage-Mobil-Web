@@ -40,8 +40,9 @@ export default async function WorkerDetailPage({
   }, 0) || 0
 
   const totalConcrete = attendance?.reduce((sum, r) => sum + Number(r.concrete_bonus || 0), 0) || 0
+  const totalAks = attendance?.reduce((sum, r) => sum + Number(r.aks_bonus || 0), 0) || 0
   const totalAdvances = advances?.reduce((sum, r) => sum + Number(r.amount || 0), 0) || 0
-  const netBalance = (totalWages + totalConcrete) - totalAdvances
+  const netBalance = (totalWages + totalConcrete + totalAks) - totalAdvances
 
   return (
     <div className="space-y-10 pb-20">
@@ -62,8 +63,8 @@ export default async function WorkerDetailPage({
             <p className="text-xl font-black">₺{netBalance.toLocaleString('tr-TR')}</p>
           </div>
           <div className="bg-orange-500 p-4 rounded-3xl text-white shadow-lg">
-            <p className="text-[10px] font-black uppercase opacity-60">Beton Toplam</p>
-            <p className="text-xl font-black">₺{totalConcrete.toLocaleString('tr-TR')}</p>
+            <p className="text-[10px] font-black uppercase opacity-60">Ek Mesai</p>
+            <p className="text-xl font-black">₺{(totalConcrete + totalAks).toLocaleString('tr-TR')}</p>
           </div>
         </div>
       </div>
@@ -79,7 +80,8 @@ export default async function WorkerDetailPage({
             {attendance?.map((record) => {
               const dayWage = record.status === 'present' ? baseWage : 0
               const concreteBonus = Number(record.concrete_bonus || 0)
-              const totalDay = dayWage + concreteBonus
+              const aksBonus = Number(record.aks_bonus || 0)
+              const totalDay = dayWage + concreteBonus + aksBonus
 
               return (
                 <div key={record.id} className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 flex items-center justify-between shadow-sm hover:shadow-md transition-all">
@@ -95,7 +97,12 @@ export default async function WorkerDetailPage({
                         </p>
                         {record.is_concrete && (
                           <span className="flex items-center gap-1 bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter">
-                            <HardHat size={10} /> Beton Mesaisi
+                            <HardHat size={10} /> Beton
+                          </span>
+                        )}
+                        {record.is_aks && (
+                          <span className="flex items-center gap-1 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter">
+                            Aks
                           </span>
                         )}
                       </div>
@@ -105,6 +112,9 @@ export default async function WorkerDetailPage({
                     <p className="text-lg font-black text-indigo-600">₺{totalDay.toLocaleString('tr-TR')}</p>
                     {concreteBonus > 0 && (
                       <p className="text-[9px] font-bold text-orange-500 uppercase tracking-tighter">+₺{concreteBonus} Beton</p>
+                    )}
+                    {aksBonus > 0 && (
+                      <p className="text-[9px] font-bold text-blue-500 uppercase tracking-tighter">+₺{aksBonus} Aks</p>
                     )}
                   </div>
                 </div>

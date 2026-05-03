@@ -11,7 +11,7 @@ export async function addAdvance(formData: FormData) {
   const amount = parseFloat(formData.get('amount') as string)
   
   const rawDate = formData.get('date') as string
-  const trDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
+  const trDate = new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const date = rawDate || trDate
   
   if (date > trDate) {
@@ -44,7 +44,9 @@ export async function addAdvance(formData: FormData) {
     .from('advances')
     .insert([{ plan_id, worker_id, amount, date, description }])
 
-  if (!error) {
-    revalidatePath(`/admin/${plan_id}/advances`, 'page')
-  }
+  if (error) throw error
+
+  revalidatePath(`/admin/${plan_id}/advances`)
+  revalidatePath(`/admin/${plan_id}/payments`)
+  revalidatePath(`/admin/${plan_id}`)
 }

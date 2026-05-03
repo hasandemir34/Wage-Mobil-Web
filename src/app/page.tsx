@@ -48,7 +48,7 @@ export default async function HomePage() {
         {/* Plan Oluşturma Kartı (Sadece işverenler/yöneticiler görebilir) */}
         {!isWorker && (
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border-2 border-indigo-100 dark:border-indigo-900/30">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-900 dark:text-white">
               <Plus className="text-indigo-600" />
               Yeni İş Planı (Şantiye) Oluştur
             </h2>
@@ -57,7 +57,7 @@ export default async function HomePage() {
                 name="name" 
                 required 
                 placeholder="Örn: Merkez Şantiyesi" 
-                className="flex-1 rounded-2xl border-gray-200 dark:bg-gray-700 dark:border-gray-600 p-4 text-lg focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                className="flex-1 rounded-2xl border border-gray-200 dark:bg-gray-700 dark:border-gray-600 p-4 text-lg text-gray-900 dark:text-white placeholder:text-gray-600 dark:placeholder:text-gray-300 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none"
               />
               <button className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-2xl text-lg shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">
                 Hemen Oluştur

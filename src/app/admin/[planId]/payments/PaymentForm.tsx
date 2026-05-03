@@ -13,27 +13,35 @@ interface WorkerBalance {
   balance: number
 }
 
-export default function PaymentForm({ 
-  planId, 
-  workers 
-}: { 
+export default function PaymentForm({
+  planId,
+  workers,
+  today,
+}: {
   planId: string
-  workers: WorkerBalance[] 
+  workers: WorkerBalance[]
+  today?: string
 }) {
+  const defaultDate = today || new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
   const [selectedWorkerId, setSelectedWorkerId] = useState('')
   const [amount, setAmount] = useState<number | ''>('')
+  const [date, setDate] = useState(defaultDate)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
   const selectedWorker = workers.find(w => w.id === selectedWorkerId)
-  
-  const eligibleWorkers = workers.filter(w => w.balance > 0)
+  const eligibleWorkers = workers
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedWorkerId || amount === '' || amount <= 0) return
-    
+
+    if (date > defaultDate) {
+      setError('Gelecek bir tarih için ödeme yapılamaz.')
+      return
+    }
+
     if (selectedWorker && amount > selectedWorker.balance) {
       setError(`Ödeme tutarı, işçinin net alacağından (₺${selectedWorker.balance.toLocaleString('tr-TR')}) fazla olamaz.`)
       return
@@ -48,12 +56,14 @@ export default function PaymentForm({
     formData.append('worker_id', selectedWorkerId)
     formData.append('amount', amount.toString())
     formData.append('max_amount', selectedWorker?.balance.toString() || '0')
+    formData.append('date', date)
 
     try {
       await makePayment(formData)
       setSuccess(`${selectedWorker?.name} adlı işçiye ₺${amount.toLocaleString('tr-TR')} ödeme yapıldı.`)
       setAmount('')
       setSelectedWorkerId('')
+      setDate(defaultDate)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ödeme sırasında bir hata oluştu.')
     } finally {
@@ -88,7 +98,7 @@ export default function PaymentForm({
             <p>{error}</p>
           </div>
         )}
-        
+
         {success && (
           <div className="bg-green-50 text-green-600 p-4 rounded-xl flex items-start gap-3 text-sm font-bold">
             <Banknote size={20} className="shrink-0" />
@@ -118,35 +128,52 @@ export default function PaymentForm({
         </div>
 
         {selectedWorker && (
-          <div className="space-y-2">
-            <div className="flex justify-between items-center ml-1">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Ödenecek Tutar (₺)</label>
-              <span className="text-xs font-bold text-indigo-600">Maks: ₺{selectedWorker.balance.toLocaleString('tr-TR')}</span>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Ödenecek Tutar (₺)</label>
+                <span className="text-xs font-bold text-indigo-600">Maks: ₺{selectedWorker.balance.toLocaleString('tr-TR')}</span>
+              </div>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-black text-xl">₺</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={selectedWorker.balance}
+                  required
+                  value={amount}
+                  onChange={(e) => {
+                    setAmount(e.target.value === '' ? '' : Number(e.target.value))
+                    setError('')
+                  }}
+                  className="w-full min-w-0 pl-10 pr-4 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-xl font-black text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  placeholder="Örn: 5000"
+                />
+              </div>
+              <div className="flex gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setAmount(selectedWorker.balance)}
+                  className="text-xs bg-indigo-50 text-indigo-600 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+                >
+                  Tümünü Öde
+                </button>
+              </div>
             </div>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-black text-xl">₺</span>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Tarih</label>
               <input
-                type="number"
-                min="1"
-                max={selectedWorker.balance}
+                type="date"
                 required
-                value={amount}
+                value={date}
+                max={defaultDate}
                 onChange={(e) => {
-                  setAmount(e.target.value === '' ? '' : Number(e.target.value))
+                  setDate(e.target.value)
                   setError('')
                 }}
-                className="w-full pl-10 pr-4 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-xl font-black text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                placeholder="Örn: 5000"
+                className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-lg font-bold"
               />
-            </div>
-            <div className="flex gap-2 mt-2">
-              <button 
-                type="button" 
-                onClick={() => setAmount(selectedWorker.balance)}
-                className="text-xs bg-indigo-50 text-indigo-600 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
-              >
-                Tümünü Öde
-              </button>
             </div>
           </div>
         )}

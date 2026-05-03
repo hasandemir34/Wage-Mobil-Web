@@ -11,7 +11,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
 
   // Parallel data fetching for maximum speed
   const [workersRes, advancesRes, todayAttendanceRes, allAttendanceRes] = await Promise.all([
-    supabase.from('work_plan_members').select('user_id, base_daily_wage').eq('plan_id', planId).eq('role', 'worker'),
+    supabase.from('work_plan_members').select('user_id, full_name, base_daily_wage').eq('plan_id', planId).eq('role', 'worker'),
     supabase.from('advances').select('amount').eq('plan_id', planId),
     supabase.from('attendance').select('id').eq('plan_id', planId).eq('date', today).eq('status', 'present'),
     supabase.from('attendance').select('worker_id, status, concrete_bonus, aks_bonus').eq('plan_id', planId)
@@ -28,9 +28,8 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
   let totalEarned = 0
   allAttendance.forEach(att => {
     const wage = workerWageMap.get(att.worker_id)
-    if (wage !== undefined) {
-      if (att.status === 'present') totalEarned += wage
-      
+    if (wage !== undefined && att.status === 'present') {
+      totalEarned += wage
       totalEarned += Number(att.concrete_bonus || 0)
       totalEarned += Number(att.aks_bonus || 0)
     }
@@ -92,7 +91,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
       {/* Doküman Oluşturma Satırı (ALTTA) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <div className="lg:col-span-1">
-          <ReportPanel planId={planId} />
+          <ReportPanel planId={planId} workers={workers.map(w => ({ id: w.user_id, name: (w as any).full_name || '' }))} />
         </div>
       </div>
     </div>

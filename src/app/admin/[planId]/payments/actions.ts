@@ -34,18 +34,18 @@ export async function makePayment(formData: FormData) {
     throw new Error('Güvenlik ihlali: Bu işlem için yetkiniz yok.')
   }
 
-  // Ödemeyi 'advances' tablosuna 'Maaş Ödemesi' açıklamasıyla ekliyoruz
-  // Çünkü avans ve ödeme temelde işçiye nakit çıkışıdır ve net bakiyeyi düşürür.
-  const trDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
-  
+  const trDate = new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const rawDate = formData.get('date') as string
+  const date = rawDate && rawDate <= trDate ? rawDate : trDate
+
   const { error } = await supabase
     .from('advances')
-    .insert([{ 
-      plan_id, 
-      worker_id, 
-      amount, 
-      date: trDate, 
-      description: 'Maaş Ödemesi / Toplu Ödeme' 
+    .insert([{
+      plan_id,
+      worker_id,
+      amount,
+      date,
+      description: 'Maaş Ödemesi / Toplu Ödeme'
     }])
 
   if (error) {

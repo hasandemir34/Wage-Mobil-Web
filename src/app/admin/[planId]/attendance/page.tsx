@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { createClient } from '@/utils/supabase/server'
 import AttendanceManager from './AttendanceManager'
 import ConcreteManager from './ConcreteManager'
@@ -19,12 +21,23 @@ export default async function AttendancePage({
   const turkeyToday = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
   const selectedDate = date || turkeyToday
 
-  // İşçileri çek
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Tüm üyeleri çek (işçi + işveren)
   const { data: workers } = await supabase
     .from('work_plan_members')
     .select('*, profiles(username)')
     .eq('plan_id', planId)
-    .eq('role', 'worker')
+
+  const labeledWorkers = (workers || []).map(w =>
+    w.user_id === user?.id ? { ...w, full_name: 'Ben' } : w
+  )
+
+  const sortedWorkers = [...labeledWorkers].sort((a, b) => {
+    if (a.role === 'admin') return -1
+    if (b.role === 'admin') return 1
+    return 0
+  })
 
   // Bugünün (Türkiye) verilerini çek (Beton ve Aks her zaman bugün için)
   const { data: todayAttendance } = await supabase
@@ -93,11 +106,12 @@ export default async function AttendancePage({
           />
         </div>
 
-        <AttendanceManager 
-          workers={workers || []} 
+        <AttendanceManager
+          workers={sortedWorkers}
           initialAttendance={selectedAttendance || []}
           planId={planId}
           currentDate={selectedDate}
+          currentUserId={user?.id}
         />
       </div>
 
@@ -110,16 +124,16 @@ export default async function AttendancePage({
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ConcreteManager 
-            planId={planId} 
-            workers={workers || []} 
+          <ConcreteManager
+            planId={planId}
+            workers={labeledWorkers}
             date={turkeyToday}
             initialSelected={concreteSelected}
             initialBonus={Number(concreteBonus)}
           />
-          <AksManager 
-            planId={planId} 
-            workers={workers || []} 
+          <AksManager
+            planId={planId}
+            workers={labeledWorkers}
             date={turkeyToday}
             initialSelected={aksSelected}
             initialBonus={Number(aksBonus)}

@@ -63,4 +63,6 @@ export async function saveAttendance(formData: FormData) {
   }
 
   revalidatePath(`/admin/${plan_id}/attendance`)
+  revalidatePath(`/admin/${plan_id}/advances`)
+  revalidatePath(`/admin/${plan_id}`)
 }

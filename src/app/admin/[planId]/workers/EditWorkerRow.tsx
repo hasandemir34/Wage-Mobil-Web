@@ -39,10 +39,10 @@ export default function EditWorkerRow({ worker, planId }: { worker: any, planId:
     return (
       <tr className="bg-indigo-50/50 dark:bg-indigo-900/10">
         <td className="px-8 py-4">
-          <input 
+          <input
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full px-3 py-2 border-2 border-indigo-200 rounded-lg font-bold outline-none focus:border-indigo-600 dark:bg-gray-800 dark:border-gray-700"
+            className="w-full px-3 py-2 border-2 border-indigo-200 rounded-lg font-bold outline-none focus:border-indigo-600 text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-700"
           />
         </td>
         <td className="px-8 py-4">
@@ -52,7 +52,7 @@ export default function EditWorkerRow({ worker, planId }: { worker: any, planId:
               type="number"
               value={wage}
               onChange={(e) => setWage(parseFloat(e.target.value))}
-              className="w-24 px-3 py-2 border-2 border-indigo-200 rounded-lg font-black outline-none focus:border-indigo-600 dark:bg-gray-800 dark:border-gray-700"
+              className="w-24 px-3 py-2 border-2 border-indigo-200 rounded-lg font-black outline-none focus:border-indigo-600 text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-700"
             />
           </div>
         </td>

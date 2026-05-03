@@ -8,12 +8,11 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
   const { planId } = await params
   const supabase = await createClient()
 
-  const [{ data: workers }, { data: invitations }] = await Promise.all([
+  const [{ data: allMembers }, { data: invitations }] = await Promise.all([
     supabase
       .from('work_plan_members')
       .select('*, profiles(username)')
-      .eq('plan_id', planId)
-      .eq('role', 'worker'),
+      .eq('plan_id', planId),
     supabase
       .from('invitations')
       .select('*')
@@ -64,6 +63,29 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
         </form>
       </div>
 
+      {/* İşveren Kadrosu */}
+      {allMembers?.filter(m => m.role === 'admin').map(admin => (
+        <div key={admin.id} className="space-y-4">
+          <h3 className="text-sm font-black text-indigo-500 uppercase tracking-[0.2em] px-4">İşveren (Kendi Yevmiyeni Düzenle)</h3>
+          <div className="bg-white rounded-[3rem] shadow-2xl border border-indigo-100 dark:bg-gray-800 dark:border-indigo-900/30 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-indigo-50 dark:bg-indigo-900/20">
+                  <tr>
+                    <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">İşveren Bilgileri</th>
+                    <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Yevmiye</th>
+                    <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Düzenle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <EditWorkerRow key={admin.id} worker={admin} planId={planId} />
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ))}
+
       {/* Aktif İşçi Listesi */}
       <div className="space-y-4">
         <h3 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em] px-4">Aktif Kadro (Yevmiye Düzenle)</h3>
@@ -78,10 +100,10 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {workers?.map(worker => (
+                {allMembers?.filter(m => m.role === 'worker').map(worker => (
                   <EditWorkerRow key={worker.id} worker={worker} planId={planId} />
                 ))}
-                {(!workers || workers.length === 0) && (
+                {(!allMembers || allMembers.filter(m => m.role === 'worker').length === 0) && (
                   <tr>
                     <td colSpan={3} className="px-8 py-20 text-center text-gray-400 font-bold uppercase tracking-widest">Henüz işçi eklenmedi</td>
                   </tr>
@@ -112,7 +134,7 @@ export default async function WorkersPage({ params }: { params: Promise<{ planId
                   </div>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-100 dark:border-gray-600 flex-1 sm:flex-none font-mono text-[10px] truncate max-w-[200px]">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-xl border border-gray-100 dark:border-gray-600 flex-1 sm:flex-none font-mono text-[10px] truncate max-w-[200px] text-gray-700 dark:text-gray-200">
                     {inv.token}
                   </div>
                   <CopyInviteButton token={inv.token} />

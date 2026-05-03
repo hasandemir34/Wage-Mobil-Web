@@ -16,6 +16,7 @@ export default function AttendanceDateSelector({
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value
     router.push(`/admin/${planId}/attendance?date=${newDate}`)
+    router.refresh()
   }
 
   return (
@@ -36,7 +37,7 @@ export default function AttendanceDateSelector({
           defaultValue={selectedDate}
           max={maxDate}
           onChange={handleDateChange}
-          className="bg-gray-50 dark:bg-gray-700 px-4 py-2 rounded-xl font-bold border-none outline-none focus:ring-2 focus:ring-indigo-600 cursor-pointer"
+          className="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-xl font-bold border-none outline-none focus:ring-2 focus:ring-indigo-600 cursor-pointer"
         />
       </div>
     </div>

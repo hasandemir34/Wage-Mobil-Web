@@ -55,6 +55,16 @@ export async function createWorkPlan(formData: FormData) {
 
   if (memberError) throw memberError
 
+  // İşveren plan oluşturduğunda geriye dönük 30 gün absent kaydet
+  const now = new Date()
+  await supabase.from('attendance').insert(
+    Array.from({ length: 30 }, (_, i) => {
+      const d = new Date(now)
+      d.setDate(d.getDate() - (i + 1))
+      return { plan_id: plan.id, worker_id: user.id, date: d.toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' }), status: 'absent', overtime_hours: 0, multiplier: 1.5 }
+    })
+  )
+
   revalidatePath('/')
   return plan
 }
