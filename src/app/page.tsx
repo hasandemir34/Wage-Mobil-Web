@@ -16,12 +16,14 @@ export default async function HomePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [{ data: profile }, { data: memberships }] = await Promise.all([
-    supabase.from('profiles').select('role').eq('id', user.id).single(),
-    supabase.from('work_plan_members').select('*, work_plans(name)').eq('user_id', user.id),
-  ])
+  const { data: memberships } = await supabase
+    .from('work_plan_members')
+    .select('*, work_plans(name)')
+    .eq('user_id', user.id)
 
-  const isWorker = profile?.role === 'worker'
+  const isWorker =
+    (memberships?.some(m => m.role === 'worker') ?? false) &&
+    !(memberships?.some(m => m.role === 'admin') ?? false)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 relative">

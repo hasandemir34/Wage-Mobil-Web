@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { ArrowLeft, Calendar, History, Banknote, User, HardHat } from 'lucide-react'
 import Link from 'next/link'
+import WorkerCalendar from '@/app/worker/[planId]/WorkerCalendar'
 
 export default async function WorkerDetailPage({ 
   params 
@@ -67,6 +68,20 @@ export default async function WorkerDetailPage({
             <p className="text-xl font-black">₺{(totalConcrete + totalAks).toLocaleString('tr-TR')}</p>
           </div>
         </div>
+      </div>
+
+      {/* Yoklama Takvimi */}
+      <div>
+        <h3 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em] px-2 flex items-center gap-3 mb-4">
+          <Calendar size={18} className="text-indigo-600" />
+          Yoklama Takvimi
+        </h3>
+        <WorkerCalendar attendance={(attendance ?? []).map(r => ({
+          date: r.date,
+          status: r.status,
+          concrete_bonus: r.concrete_bonus,
+          aks_bonus: r.aks_bonus,
+        }))} />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">

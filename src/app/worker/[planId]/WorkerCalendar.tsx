@@ -40,7 +40,7 @@ export default function WorkerCalendar({ attendance }: { attendance: AttendanceR
   const getRecord = (day: number) => {
     if (!day) return null
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return attendance.find(a => a.date === dateStr)
+    return attendance.find(a => a.date.slice(0, 10) === dateStr) ?? null
   }
 
   // SVG ring constants
@@ -81,14 +81,20 @@ export default function WorkerCalendar({ attendance }: { attendance: AttendanceR
           const onlyAks = hasAks && !hasConcrete
           const bothExtras = hasConcrete && hasAks
 
+          const textColor = !day
+            ? ''
+            : status === 'present'
+            ? 'text-green-500'
+            : status === 'absent'
+            ? 'text-red-500'
+            : 'text-gray-300'
+
           return (
             <div
               key={idx}
               className={`
                 aspect-square flex items-center justify-center text-lg sm:text-2xl font-black transition-all relative rounded-full min-h-[40px] sm:min-h-[44px]
-                ${!day ? 'bg-transparent' : 'text-gray-400'}
-                ${status === 'present' ? 'text-green-500' : ''}
-                ${status === 'absent' ? 'text-red-500' : ''}
+                ${!day ? 'bg-transparent' : textColor}
               `}
             >
               {day}
@@ -117,8 +123,24 @@ export default function WorkerCalendar({ attendance }: { attendance: AttendanceR
       </div>
 
       {/* Açıklama */}
-      <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700">
-        <p className="text-[9px] font-black text-gray-300 dark:text-gray-600 uppercase tracking-[0.2em] text-center mb-3">Halka Göstergesi</p>
+      <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+        {/* Renk göstergesi */}
+        <div className="flex items-center gap-3 justify-center">
+          <div className="flex items-center gap-1.5">
+            <span className="text-green-500 text-lg font-black leading-none">●</span>
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Geldi</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-red-500 text-lg font-black leading-none">●</span>
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Gelmedi</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-gray-300 text-lg font-black leading-none">●</span>
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Yoklama Yok</span>
+          </div>
+        </div>
+
+        <p className="text-[9px] font-black text-gray-300 dark:text-gray-600 uppercase tracking-[0.2em] text-center">Halka Göstergesi</p>
         <div className="flex items-stretch gap-2 justify-center">
           <div className="flex-1 max-w-[90px] flex flex-col items-center gap-2 bg-orange-50 dark:bg-orange-950/30 rounded-2xl p-3">
             <div className="w-7 h-7 rounded-full ring-[3px] ring-orange-500 ring-offset-2 ring-offset-orange-50 dark:ring-offset-gray-800" />
