@@ -24,12 +24,51 @@ export default async function AttendancePage({
   const { data: { user } } = await supabase.auth.getUser()
 
   // Tüm üyeleri çek (işçi + işveren)
-  const { data: workers } = await supabase
+  const membersPromise = supabase
     .from('work_plan_members')
     .select('*, profiles(username)')
     .eq('plan_id', planId)
 
-  const labeledWorkers = (workers || []).map(w =>
+  const todayAttendancePromise = supabase
+    .from('attendance')
+    .select('worker_id, status, is_concrete, concrete_bonus, is_aks, aks_bonus')
+    .eq('plan_id', planId)
+    .eq('date', turkeyToday)
+
+  const selectedAttendancePromise = supabase
+    .from('attendance')
+    .select('worker_id, status')
+    .eq('plan_id', planId)
+    .eq('date', selectedDate)
+
+  const lastConcretePromise = supabase
+    .from('attendance')
+    .select('concrete_bonus')
+    .eq('plan_id', planId)
+    .eq('is_concrete', true)
+    .order('date', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const lastAksPromise = supabase
+    .from('attendance')
+    .select('aks_bonus')
+    .eq('plan_id', planId)
+    .eq('is_aks', true)
+    .order('date', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const [workersRes, todayAttendanceRes, selectedAttendanceRes, lastConcreteRes, lastAksRes] = await Promise.all([
+    membersPromise,
+    todayAttendancePromise,
+    selectedAttendancePromise,
+    lastConcretePromise,
+    lastAksPromise,
+  ])
+
+  const workers = workersRes.data || []
+  const labeledWorkers = workers.map(w =>
     w.user_id === user?.id ? { ...w, full_name: 'Ben' } : w
   )
 
@@ -39,41 +78,10 @@ export default async function AttendancePage({
     return 0
   })
 
-  // Bugünün (Türkiye) verilerini çek (Beton ve Aks her zaman bugün için)
-  const { data: todayAttendance } = await supabase
-    .from('attendance')
-    .select('worker_id, status, is_concrete, concrete_bonus, is_aks, aks_bonus')
-    .eq('plan_id', planId)
-    .eq('date', turkeyToday)
-
-  // Seçili tarihin (Puantaj için) verilerini çek
-  const { data: selectedAttendance } = await supabase
-    .from('attendance')
-    .select('worker_id, status')
-    .eq('plan_id', planId)
-    .eq('date', selectedDate)
-
-  // En son kaydedilen bonusları çek (varsayılan olarak kullanmak için)
-  const { data: lastConcrete } = await supabase
-    .from('attendance')
-    .select('concrete_bonus')
-    .eq('plan_id', planId)
-    .eq('is_concrete', true)
-    .order('date', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const { data: lastAks } = await supabase
-    .from('attendance')
-    .select('aks_bonus')
-    .eq('plan_id', planId)
-    .eq('is_aks', true)
-    .order('date', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const defaultConcreteBonus = lastConcrete?.concrete_bonus || 500
-  const defaultAksBonus = lastAks?.aks_bonus || 300
+  const todayAttendance = todayAttendanceRes.data || []
+  const selectedAttendance = selectedAttendanceRes.data || []
+  const defaultConcreteBonus = lastConcreteRes.data?.concrete_bonus || 500
+  const defaultAksBonus = lastAksRes.data?.aks_bonus || 300
 
   const concreteSelected = todayAttendance?.filter(a => a.is_concrete).map(a => a.worker_id) || []
   const aksSelected = todayAttendance?.filter(a => a.is_aks).map(a => a.worker_id) || []

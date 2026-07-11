@@ -10,33 +10,28 @@ export default async function AdminDashboard({ params }: { params: Promise<{ pla
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' })
 
   // Parallel data fetching for maximum speed
-  const [workersRes, advancesRes, todayAttendanceRes, allAttendanceRes] = await Promise.all([
+  const [workersRes, advancesRes, todayAttendanceRes, presentAttendanceRes] = await Promise.all([
     supabase.from('work_plan_members').select('user_id, full_name, base_daily_wage').eq('plan_id', planId).eq('role', 'worker'),
-    supabase.from('advances').select('amount').eq('plan_id', planId),
-    supabase.from('attendance').select('id').eq('plan_id', planId).eq('date', today).eq('status', 'present'),
-    supabase.from('attendance').select('worker_id, status, concrete_bonus, aks_bonus').eq('plan_id', planId)
+    supabase.from('advances').select('sum(amount)').eq('plan_id', planId).single(),
+    supabase.from('attendance').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('date', today).eq('status', 'present'),
+    supabase.from('attendance').select('worker_id, status, concrete_bonus, aks_bonus').eq('plan_id', planId).eq('status', 'present')
   ])
 
   const workers = workersRes.data || []
-  const advances = advancesRes.data || []
-  const todayAttendance = todayAttendanceRes.data || []
-  const allAttendance = allAttendanceRes.data || []
+  const todayAttendanceCount = Number(todayAttendanceRes.count ?? 0)
+  const advancesSum = Number(advancesRes.data?.sum ?? 0)
+  const presentAttendance = presentAttendanceRes.data || []
 
   // Optimize calculation: Create a lookup map for worker wages
   const workerWageMap = new Map(workers.map(w => [w.user_id, Number(w.base_daily_wage || 0)]))
   
-  let totalEarned = 0
-  allAttendance.forEach(att => {
-    const wage = workerWageMap.get(att.worker_id)
-    if (wage !== undefined && att.status === 'present') {
-      totalEarned += wage
-      totalEarned += Number(att.concrete_bonus || 0)
-      totalEarned += Number(att.aks_bonus || 0)
-    }
-  })
+  const totalEarned = presentAttendance.reduce((sum, att) => {
+    const wage = workerWageMap.get(att.worker_id) ?? 0
+    return sum + wage + Number(att.concrete_bonus || 0) + Number(att.aks_bonus || 0)
+  }, 0)
 
-  const totalAdvances = advances.reduce((sum, item) => sum + Number(item.amount), 0)
-  const activeToday = todayAttendance.length
+  const totalAdvances = advancesSum
+  const activeToday = todayAttendanceCount
   const netBalance = totalEarned - totalAdvances
   
   return (

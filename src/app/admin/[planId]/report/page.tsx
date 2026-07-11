@@ -45,6 +45,26 @@ export default async function ReportPage({
       .order('date', { ascending: true }),
   ])
 
+  const workersList = workers || []
+  const attendanceList = attendance || []
+  const advancesList = advances || []
+  const attendanceByWorker = new Map<string, any[]>()
+  const advancesByWorker = new Map<string, any[]>()
+
+  attendanceList.forEach((item) => {
+    const workerArray = attendanceByWorker.get(item.worker_id) ?? []
+    workerArray.push(item)
+    attendanceByWorker.set(item.worker_id, workerArray)
+  })
+
+  advancesList.forEach((item) => {
+    const advanceArray = advancesByWorker.get(item.worker_id) ?? []
+    advanceArray.push(item)
+    advancesByWorker.set(item.worker_id, advanceArray)
+  })
+
+  const workerById = new Map(workersList.map((worker: any) => [worker.user_id, worker]))
+
   return (
     <div className="bg-white min-h-screen p-4 sm:p-8 print:p-0">
       {/* Yazdırma Kontrol Paneli (Client Component) */}
@@ -85,9 +105,9 @@ export default async function ReportPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-300">
-                {workers?.map(worker => {
-                  const wAtt = attendance?.filter(a => a.worker_id === worker.user_id) || []
-                  const wAdv = advances?.filter(a => a.worker_id === worker.user_id) || []
+                {workersList.map(worker => {
+                  const wAtt = attendanceByWorker.get(worker.user_id) || []
+                  const wAdv = advancesByWorker.get(worker.user_id) || []
                   
                   const fullDays = wAtt.filter(a => a.status === 'present').length
                   const baseWage = Number(worker.base_daily_wage || 0)
@@ -136,8 +156,8 @@ export default async function ReportPage({
               <HardHat size={14} className="text-orange-500" /> Son Beton Detayları
             </h3>
             <div className="space-y-2">
-              {attendance?.filter(a => a.is_concrete).slice(-8).map(a => {
-                const w = workers?.find(work => work.user_id === a.worker_id)
+              {attendanceList.filter(a => a.is_concrete).slice(-8).map(a => {
+                const w = workerById.get(a.worker_id)
                 return (
                   <div key={a.id} className="flex justify-between text-[10px] border-b border-gray-50 pb-1">
                     <span className="text-gray-500">{new Date(a.date).toLocaleDateString('tr-TR')} - {w?.full_name}</span>
@@ -152,8 +172,8 @@ export default async function ReportPage({
               <Ruler size={14} className="text-blue-500" /> Son Aks Detayları
             </h3>
             <div className="space-y-2">
-              {attendance?.filter(a => a.is_aks).slice(-8).map(a => {
-                const w = workers?.find(work => work.user_id === a.worker_id)
+              {attendanceList.filter(a => a.is_aks).slice(-8).map(a => {
+                const w = workerById.get(a.worker_id)
                 return (
                   <div key={a.id} className="flex justify-between text-[10px] border-b border-gray-50 pb-1">
                     <span className="text-gray-500">{new Date(a.date).toLocaleDateString('tr-TR')} - {w?.full_name}</span>
@@ -168,8 +188,8 @@ export default async function ReportPage({
               <Banknote size={14} className="text-red-600" /> Son Avanslar
             </h3>
             <div className="space-y-2">
-              {advances?.slice(-8).map(a => {
-                const w = workers?.find(work => work.user_id === a.worker_id)
+              {advancesList.slice(-8).map(a => {
+                const w = workerById.get(a.worker_id)
                 return (
                   <div key={a.id} className="flex justify-between text-[10px] border-b border-gray-50 pb-1">
                     <span className="text-gray-500">{new Date(a.date).toLocaleDateString('tr-TR')} - {w?.full_name}</span>
